@@ -1,0 +1,77 @@
+{block content}
+{include 'headerDeliveryNote.latte'}
+{snippet finalOperation}
+    {if isset($finalOperation) && $finalOperation}
+        <div id="finalOperation" class='modal fade' tabindex='-1' role='dialog' aria-labelledby='confirmModalLabel' aria-hidden='true'>
+            <div class='modal-dialog'>
+                <div class='modal-content' id='dConfirm'>
+                    <div class='modal-header'>
+                        <h4 class='modal-title info' id='confirmModalLabel'>Výrobní číslo není na skladě</h4>
+                        <button type='button' class='close' class='btn btn-lg' data-dismiss='modal' aria-hidden='true'>&times;</button>
+                    </div>
+                    <div class='modal-body'>
+                        <strong>Je možné zaevidovat odváděcí operaci a výrobní číslo odvést na sklad. Opravdu provést?</strong>
+                    </div>
+                    <div class='modal-footer'>
+                        <button type='button' id='dConfirmCancel' class='btn btn-lg m5 btn-secondary' data-dismiss='modal'>Ne</button>
+                        <button type='button' id='dConfirmOk' class='btn btn-lg m5 btn-primary' data-dismiss='modal'>Ano</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+{/snippet}
+<div class="content">
+            <div class="row delivery-note-header">
+                <div class="col-sm-12">
+                    <div class="float-right delivery-note-status"><h1 class="text-danger">Položky: {$deliveryNote->MnozstviVC}/{$deliveryNote->MnozstviPozad}</h1></div>
+                    <h1>{$deliveryNote->Odberatel}</strong></h1>
+                </div>
+            </div>
+            <div class="row delivery-note-status">
+                {if $deliveryNote->StavDLExp !== 1}
+                    <div class="col-sm-12">
+                        <div class="set-dn-form">
+                            {include '../components/readBarCodeForm.latte', form => readBarCodeForm}
+                        </div>
+                    </div>
+                {/if}
+            </div>
+        <div class="delivery-note-content">
+            <div class="row delivery-note-items">
+                <div class="col-sm-12">
+                    <table class="table table-bordered table-striped table-sm">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Kód</th>
+                                <th scope="col">Název</th>
+                                <th scope="col">Množství</th>
+                                <th scope="col">Palety</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach $deliveryNoteItems as $deliveryNoteItem}
+                                <tr class="clickable-row" data-href="{link itemDetail $deliveryNoteItem->ID}">
+                                    <td class="text-center">{$deliveryNoteItem->RegCis}</td>
+                                    <td class="text-center">{$deliveryNoteItem->Nazev}</td>
+                                    <td class="text-center font-weight-bold">{$deliveryNoteItem->Mnozstvi}/{$deliveryNoteItem->MnozstviVC}</td>
+                                    <td class="text-center font-weight-bold">{$deliveryNoteItem->PocetVC}</td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+                <div class="text-center">
+                    {if $deliveryNote->StavDLExp == 1}
+                        {ifset $deliveryNote->DatUzavrenoExp}
+                            <span class="text-danger font-weight-bold">Uzavřeno: {$deliveryNote->DatUzavrenoExp}</span>
+                        {else}
+                            <span class="text-danger font-weight-bold">Vyfakturováno</span>
+                        {/ifset}
+                    {else}
+                    <a n:href="closeDeliveryNote!" n:if="($deliveryNote->StavDLExp == 0)" class="btn btn-success btn-lg m-1"><i class="far fa-forklift"></i> Uzavřít</a>
+                    {/if}
+                </div>
+</div>

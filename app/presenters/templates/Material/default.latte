@@ -1,0 +1,25 @@
+{block content}
+{include 'headerMaterial.latte'}
+                    <div class="set-dn-form">
+    {snippetArea formArea}
+                        {include '../../templates/components/setStockDocForm.latte', form => setStockDocForm}
+                        {/snippetArea}
+                    </div>
+<div class="row content">
+        <div class="select-app">
+            <a class="" n:href="newTransferToSchenker!"> 
+                <i class="far fa-arrow-to-right fa-2x"></i><br /><br /><span class="sm">Převod do Schenkeru</span>
+            </a>
+        </div>
+        <div class="select-app">
+            <a class="" n:href="newTransferToShop"> 
+                <i class="far fa-store-alt fa-2x"></i><br /><br /><span class="sm">Převod do prodejny</span>
+            </a>
+        </div>
+        {*<div class="select-app">
+            <a class="" n:href="stdInventory"> 
+                <i class="far fa-inventory fa-2x"></i><br /><br /><span class="sm">Inventura</span>
+            </a>
+        </div>*}
+
+</div>

@@ -1,0 +1,7 @@
+{block content}
+{include 'headerMaterial.latte'}
+<div class="content">
+    {snippetArea formArea}
+        {include '../../templates/components/readBarCodeForm.latte', form => readBarCodeToShopForm}
+    {/snippetArea}
+</div>

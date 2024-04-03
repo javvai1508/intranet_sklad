@@ -1,0 +1,7 @@
+{block content}
+{include 'headerProduction.latte'}
+<div class="content">
+    {snippetArea formArea}
+        {include '../../templates/components/readBarCodeForm.latte', form => readBarCodeForm}
+    {/snippetArea}
+</div>
