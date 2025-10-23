@@ -24,7 +24,7 @@ class MaterialModel extends BaseModel {
                         . "CASE WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100303' THEN 'fromSchenker' WHEN do.IDSklad = '00100304' AND do.DruhPohybuZbo = 2 THEN 'delivery' WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100304' THEN 'toSchenker' WHEN do.DruhPohybuZbo = 0 /*AND do.IDSklad = '00100304'*/ THEN 'receipt' ELSE 'undefined' END AS DispatchType "
                         . "FROM TabDokladyZbozi do "
                         . "LEFT JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.ParovaciZnak = %s AND do.IDSklad IN ('00100303', '00100304')", $parovaciZnak)->fetch();
+                        . "WHERE do.ParovaciZnak = ? AND do.IDSklad IN ('00100303', '00100304')", $parovaciZnak)->fetch();
         return $row;
     }
 
@@ -50,7 +50,7 @@ class MaterialModel extends BaseModel {
                         . "LEFT JOIN TabVyrCP_EXT vcpe ON vcp.ID = vcpe.ID "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
                         . "GROUP BY po.IDDoklad) cntvc ON cntvc.IDDoklad = do.ID "
-                        . "WHERE do.ID = %i", $dispatchId)->fetch();
+                        . "WHERE do.ID = ?", $dispatchId)->fetch();
     }
 
     /** !!!
@@ -77,7 +77,7 @@ class MaterialModel extends BaseModel {
                         . "FROM TabVyrCP vcp "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
                         . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = vy.ID */"
-                        . "WHERE vy.IDDoklad = %i", $dispatchId)->fetchAll();
+                        . "WHERE vy.IDDoklad = ?", $dispatchId)->fetchAll();
     }
 
     /**
@@ -106,7 +106,7 @@ class MaterialModel extends BaseModel {
                         . "FROM TabVyrCP vcp "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
                         . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID */"
-                        . "WHERE pr.ID = %i", $itemId)->fetch();
+                        . "WHERE pr.ID = ?", $itemId)->fetch();
     }
 
     /**
@@ -123,7 +123,7 @@ class MaterialModel extends BaseModel {
                         . "LEFT JOIN TabVyrCP_EXT vce ON vc.ID = vce.ID "
                         . "JOIN TabVyrCS vcs ON vcs.ID = vc.IDVyrCis "
                         . "JOIN TabPohybyZbozi pr ON vc.IDPolozkaDokladu = pr.ID "
-                        . "WHERE pr.ID = %i ", $itemId)->fetchAll();
+                        . "WHERE pr.ID = ? ", $itemId)->fetchAll();
     }
 
     /** !!!
@@ -147,7 +147,7 @@ class MaterialModel extends BaseModel {
                         . "doe._skl_token "
                         . "FROM TabDokladyZbozi do "
                         . "JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = '372' AND do.IDSklad = %s AND doe._exp_dat_uzavreno IS NULL", $idSklad)->fetchAll();
+                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = '372' AND do.IDSklad = ? AND doe._exp_dat_uzavreno IS NULL", $idSklad)->fetchAll();
         return $res;
     }
 
@@ -158,10 +158,29 @@ class MaterialModel extends BaseModel {
     public function openNewDispatch($dispatchType) {
         $token = uniqid();
         // založit pouze hlavičku
-        $this->db->query("SET NOCOUNT ON "
-                . "EXEC hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet @TypVydejky = %s, @Token = %s ", $dispatchType, $token);
-        $res["IDDoklad"] = $this->db->query("SELECT ID FROM TabDokladyZbozi_EXT WHERE _skl_token = %s", $token)->fetchSingle();
+        $this->db->query("SET NOCOUNT ON; EXEC hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet @TypVydejky = ?, @Token = ?", $dispatchType, $token);
+        $res["IDDoklad"] = $this->db->query("SELECT ID FROM TabDokladyZbozi_EXT WHERE _skl_token = ?", $token)->fetchField();
         return $res;
+
+/* jak na procedury v pdo        
+$sql = "EXEC dbo.hp_InsertHlavickyOZ @Ident=?, @Sklad=?, @DruhPohybu=?, @RadaDokladu=?, @Insert=?, @IDPosta=?,
+		@Mena=?, @CisloOrg=?, @DatumPorizeni=?";
+
+$pdo = $this->helios->getPdo();
+$sth = $pdo->prepare($sql);
+$this->invoiceId = (int)$this->invoiceId;
+$ident = &$this->invoiceId;
+$sth->bindParam(1, $ident, \PDO::PARAM_INT|\PDO::PARAM_INPUT_OUTPUT, 20);
+$sth->bindParam(2, $sklad);
+$sth->bindParam(3, $druhpohybu);
+$sth->bindParam(4, $radadokladu);
+$sth->bindParam(5, $insert);
+$sth->bindParam(6, $posta);
+$sth->bindParam(7, $mena);
+$sth->bindParam(8, $org);
+$sth->bindParam(9, $datum);
+$sth->execute();
+*/
     }
 
     /** !!!
@@ -171,7 +190,7 @@ class MaterialModel extends BaseModel {
      * @return type
      */
     public function checkSerialNumberOther($dispatchId, $serialNumber) {
-        $idSklad = $this->db->query("SELECT IDSklad FROM TabDokladyZbozi WHERE ID = %i", $dispatchId)->fetchSingle();
+        $idSklad = $this->db->query("SELECT IDSklad FROM TabDokladyZbozi WHERE ID = ?", $dispatchId)->fetchField();
         return $this->db->query("SELECT "
                         . "vc.ID AS IDVyrCis, "
                         . "vc.Nazev1 AS BarCode, "
@@ -180,7 +199,7 @@ class MaterialModel extends BaseModel {
                         . "vc.IDStavSkladu AS IDZboSklad "
                         . "FROM TabVyrCS vc "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
-                        . "WHERE vc.Nazev1 = %s AND skl.IDSklad = %s", $serialNumber, $idSklad)->fetch();
+                        . "WHERE vc.Nazev1 = ? AND skl.IDSklad = ?", $serialNumber, $idSklad)->fetch();
     }
 
     /** !!!
@@ -192,21 +211,14 @@ class MaterialModel extends BaseModel {
     public function updateDispatchItemOther($barCode, $dispatchId) {
         // transakce
         $res = -9;
-        $this->db->begin();
-        try {
             // spustit akci na přidání položky do výdejky
             $itemId = $this->db->query("SET NOCOUNT ON "
-            . "EXEC hpx_agrafa_skl_dokl_pridej_paletu @SSCC = %s, @IDDoklad = %i ", $barCode, $dispatchId);
+            . "EXEC hpx_agrafa_skl_dokl_pridej_paletu @SSCC = ?, @IDDoklad = ? ", $barCode, $dispatchId);
 
-            $this->db->commit();
             if ($res) {
                 $res = $itemId;
             }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /** !!!
@@ -228,7 +240,7 @@ class MaterialModel extends BaseModel {
                         . "JOIN TabVyrCS vc ON vcp.IDVyrCis = vc.ID "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
-                        . "WHERE vc.Nazev1 = %s AND po.IDDoklad = %i", $serialNumber, $dispatchId)->fetch();
+                        . "WHERE vc.Nazev1 = %s AND po.IDDoklad = ?", $serialNumber, $dispatchId)->fetch();
     }
 
     /** !!!
@@ -240,21 +252,14 @@ class MaterialModel extends BaseModel {
     public function updateDispatchItemPrepare($barCode, $dispatchId) {
         // transakce
         $res = -9;
-        $this->db->begin();
-        try {
             // spustit akci na přidání položky do výdejky
             $itemId = $this->db->query("SET NOCOUNT ON "
-            . "EXEC hpx_agrafa_skl_dokl_priprav_paletu @SSCC = %s, @IDDoklad = %i ", $barCode, $dispatchId);
+            . "EXEC hpx_agrafa_skl_dokl_priprav_paletu @SSCC = ?, @IDDoklad = ? ", $barCode, $dispatchId);
 
-            $this->db->commit();
             if ($res) {
                 $res = $itemId;
             }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -264,7 +269,7 @@ class MaterialModel extends BaseModel {
      */
     public function closeDispatch($dispatchId) {
 
-        return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej @ID = %i", $dispatchId);
+        return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej @ID = ?", $dispatchId);
     }
 
     /**
@@ -274,7 +279,7 @@ class MaterialModel extends BaseModel {
      */
     public function closeDispatchPrepare($dispatchId) {
 
-        return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava @ID = %i", $dispatchId);
+        return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava @ID = ?", $dispatchId);
     }
 
     /**
@@ -283,25 +288,14 @@ class MaterialModel extends BaseModel {
      */
     public function removeDispatchItem($itemId) {
         // transakce
-        $this->db->begin();
-        try {
             $res = $this->db->query("UPDATE TabPohybyZbozi "
                     . "SET Mnozstvi = 0 "
-                    . "WHERE ID = %i", $itemId);
+                    . "WHERE ID = ?", $itemId);
             if ($res) {
-                $res = $this->db->query("DELETE FROM TabVyrCP WHERE IDPolozkaDokladu = %i", $itemId);
+                $res = $this->db->query("DELETE FROM TabVyrCP WHERE IDPolozkaDokladu = ?", $itemId);
                 // aktualizace TabPohybyZbozi.Mnozstvi
             }
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -310,27 +304,25 @@ class MaterialModel extends BaseModel {
      */
     public function removeDispatchItemSN($itemSNId) {
         // transakce 
-        $this->db->begin();
-        try {
             $res = true;
             $itemSNRow = $this->db->query("SELECT "
                             . "IDPolozkaDokladu AS ItemId, "
                             . "Mnozstvi AS MnozstviSN "
                             . "FROM TabVyrCP "
-                            . "WHERE ID = %i", $itemSNId)->fetch();
+                            . "WHERE ID = ?", $itemSNId)->fetchField();
 
             if ($itemSNRow) {
                 $res = $this->db->query("UPDATE TabPohybyZbozi "
-                        . "SET Mnozstvi = Mnozstvi - %f "
-                        . "WHERE ID = %i", $itemSNRow->MnozstviSN, $itemSNRow->ItemId);
+                        . "SET Mnozstvi = Mnozstvi - ? "
+                        . "WHERE ID = ?", $itemSNRow->MnozstviSN, $itemSNRow->ItemId);
 
                 if ($res) {
-                    $res = $this->db->query("DELETE FROM TabVyrCP WHERE ID = %i", $itemSNId);
+                    $res = $this->db->query("DELETE FROM TabVyrCP WHERE ID = ?", $itemSNId);
                     if ($res) {
-                        $mnozstvi = $this->db->query("SELECT Mnozstvi FROM TabPohybyZbozi WHERE ID = %i", $itemSNRow->ItemId)->fetchSingle();
+                        $mnozstvi = $this->db->query("SELECT Mnozstvi FROM TabPohybyZbozi WHERE ID = ?", $itemSNRow->ItemId)->fetchField();
                         if ($mnozstvi == 0) {
-                            $res = $this->db->query("DELETE FROM TabPohybyZboziSD WHERE ID = %i", $itemSNRow->ItemId);
-                            $res = $this->db->query("DELETE FROM TabPohybyZbozi WHERE ID = %i", $itemSNRow->ItemId);
+                            $res = $this->db->query("DELETE FROM TabPohybyZboziSD WHERE ID = ?", $itemSNRow->ItemId);
+                            $res = $this->db->query("DELETE FROM TabPohybyZbozi WHERE ID = ?", $itemSNRow->ItemId);
                         }
                     }
                 }
@@ -338,16 +330,7 @@ class MaterialModel extends BaseModel {
             } else {
                 $res = false;
             }
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -356,21 +339,10 @@ class MaterialModel extends BaseModel {
      */
     public function removeDispatchItemSNPrepare($itemSNId) {
         // transakce 
-        $this->db->begin();
-        try {
             $res = $this->db->query("UPDATE TabVyrCP_EXT "
                         . "SET _exp_mnoz_potvrz = NULL "
-                        . "WHERE ID = %i", $itemSNId);
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
+                        . "WHERE ID = ?", $itemSNId);
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /** !!!
@@ -387,7 +359,7 @@ class MaterialModel extends BaseModel {
                         . "vc.IDStavSkladu AS IDZboSklad "
                         . "FROM TabVyrCS vc "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
-                        . "WHERE vc.Nazev1 = %s AND skl.IDSklad = %s", $serialNumber, $idSklad)->fetch();
+                        . "WHERE vc.Nazev1 = ? AND skl.IDSklad = ?", $serialNumber, $idSklad)->fetch();
     }
 
     /** !!!
@@ -398,21 +370,14 @@ class MaterialModel extends BaseModel {
     public function moveSerialNumberToShop($barCode) {
         // transakce
         $res = -9;
-        $this->db->begin();
-        try {
             // spustit akci na přidání položky do výdejky
             $dispatchId = $this->db->query("SET NOCOUNT ON "
-            . "EXEC hpx_agrafa_skl_dokl_prevod_do_prod @SSCC = %s ", $barCode);
+            . "EXEC hpx_agrafa_skl_dokl_prevod_do_prod @SSCC = ?", $barCode);
 
-            $this->db->commit();
             if ($res) {
                 $res = $dispatchId;
             }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
 }

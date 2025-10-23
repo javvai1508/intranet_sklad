@@ -228,7 +228,7 @@ class DeliveryNoteModel extends BaseModel {
         $res = $this->db->query("SET NOCOUNT ON "
                         . "DECLARE @Res NVARCHAR(200) "
                         . "EXEC hpx_agrafa_exp_odvedeni_vyrobku @OsC = %i, @VyrCislo = %s, @Res = @Res OUTPUT "
-                        . "SELECT @Res", $persNumber, $serialNumber)->fetchSingle();
+                        . "SELECT @Res", $persNumber, $serialNumber)->fetchField();
         return $res;
     }
 
@@ -298,8 +298,6 @@ class DeliveryNoteModel extends BaseModel {
      */
     public function updateDeliveryNoteItem($deliveryNoteId, $pohybId, $vyrCisloId, $mnozstviPriprava, $packageOpen, $packageNr) {
         // transakce
-        $this->db->begin();
-        try {
             $itemRows = $this->db->query("SELECT "
                             . "po.ID AS ItemId,"
                             . "CONVERT(INT, poe._exp_mnozstvi_pozad_puvodni) AS MnozstviPozadavek, "
@@ -330,7 +328,7 @@ class DeliveryNoteModel extends BaseModel {
                     } else {
                         $this->db->query("INSERT INTO TabVyrCP (IDPolozkaDokladu, IDVyrCis, Nazev, Vznik, Mnozstvi) "
                                 . "VALUES (%i, %i, '', 0, %f) ", $itemId, $vyrCisloId, $mnozstviUloz);
-                        $itemSNId = $this->db->query("SELECT SCOPE_IDENTITY()")->fetchSingle();
+                        $itemSNId = $this->db->query("SELECT SCOPE_IDENTITY()")->fetchField();
                     }
 
                     // balíky
@@ -376,15 +374,10 @@ class DeliveryNoteModel extends BaseModel {
                 // aktualizace TabPohybyZbozi.Mnozstvi
                 $this->updateDeliveryNoteItemQuantity($itemId);
             }
-            $this->db->commit();
             if ($res) {
                 $res = $packageNr;
             }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -397,8 +390,6 @@ class DeliveryNoteModel extends BaseModel {
     public function updateDeliveryNoteItemFromStock($deliveryNoteId, $pohybId, $vyrCisloId, $serialNumber, $mnozstviPriprava) {
         // transakce
         $res = -1;
-        $this->db->begin();
-        try {
             $itemRow = $this->db->query("SELECT "
                             . "po.ID AS ItemId,"
                             . "CONVERT(INT, po.Mnozstvi) AS MnozstviPozadavek, "
@@ -422,15 +413,10 @@ class DeliveryNoteModel extends BaseModel {
                     . "VALUES (%i, %i, %s, %f)", $pohybId, $vyrCisloId, $serialNumber, $mnozstviPriprava);
             
             }
-            $this->db->commit();
             if ($res) {
                 $res = 1;
             }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -442,8 +428,6 @@ class DeliveryNoteModel extends BaseModel {
      */
     public function processDeliveryNoteFromStock($deliveryNoteId, $pohybId, $mnozstviPriprava, $packageOpen, $packageNr) {
         // transakce
-        $this->db->begin();
-        try {
             $itemRows = $this->db->query("SELECT "
                             . "po.ID AS ItemId, "
                             . "po.IDZboSklad AS IDZboSklad, "
@@ -487,7 +471,7 @@ class DeliveryNoteModel extends BaseModel {
                         } else {
                             $this->db->query("INSERT INTO TabVyrCP (IDPolozkaDokladu, IDVyrCis, Nazev, Vznik, Mnozstvi) "
                                     . "VALUES (%i, %i, '', 0, %f) ", $itemId, $itemStockRow->SNId, $mnozstviUloz);
-                            $itemSNId = $this->db->query("SELECT SCOPE_IDENTITY()")->fetchSingle();
+                            $itemSNId = $this->db->query("SELECT SCOPE_IDENTITY()")->fetchField();
                         }
 
                         // balíky
@@ -536,7 +520,6 @@ class DeliveryNoteModel extends BaseModel {
                     $this->updateDeliveryNoteItemQuantity($itemId);
                 }
             }
-            $this->db->commit();
             if (isset($res)) {
                 $resArr["res"] = 0;
                 $resArr["packageNr"] = $packageNr;
@@ -545,10 +528,6 @@ class DeliveryNoteModel extends BaseModel {
                 $resArr["res"] = 1;
             }
             return $resArr;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -557,8 +536,6 @@ class DeliveryNoteModel extends BaseModel {
      */
     public function removeDeliveryNoteItem($itemId) {
         // transakce
-        $this->db->begin();
-        try {
             $res = $this->db->query("UPDATE TabPohybyZbozi_EXT "
                     . "SET _exp_mnozstvi_vc = 0 "
                     . "WHERE ID = %i", $itemId);
@@ -577,16 +554,7 @@ class DeliveryNoteModel extends BaseModel {
                     $this->updateDeliveryNoteItemQuantity($itemId);
                 }
             }
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -638,8 +606,6 @@ class DeliveryNoteModel extends BaseModel {
      */
     public function removeDeliveryNoteItemSN($itemSNId) {
         // transakce 
-        $this->db->begin();
-        try {
             $res = true;
             $itemSNRow = $this->db->query("SELECT "
                             . "IDPolozkaDokladu AS ItemId, "
@@ -669,16 +635,7 @@ class DeliveryNoteModel extends BaseModel {
             } else {
                 $res = false;
             }
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -689,8 +646,6 @@ class DeliveryNoteModel extends BaseModel {
     public function updateQuantitySN($values) {
         // kontrola množství na sklad
         // transakce
-        $this->db->begin();
-        try {
             $itemSNRow = $this->db->query("SELECT "
                             . "cp.IDPolozkaDokladu AS ItemId, "
                             . "CONVERT(INT, ISNULL(cp.Mnozstvi, 0)) AS MnozstviSN, "
@@ -735,16 +690,7 @@ class DeliveryNoteModel extends BaseModel {
             } else {
                 $res = 1;
             }
-            if ($res == 0) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**
@@ -824,8 +770,6 @@ class DeliveryNoteModel extends BaseModel {
      */
     public function removeFromPackage($packageId) {
         // transakce 
-        $this->db->begin();
-        try {
             $res = true;
             $packageRow = $this->db->query("SELECT "
                             . "bal.IDVyrCP AS IDVyrCP, "
@@ -854,16 +798,7 @@ class DeliveryNoteModel extends BaseModel {
                 $res = false;
             }
 
-            if ($res) {
-                $this->db->commit();
-            } else {
-                $this->db->rollback();
-            }
             return $res;
-        } catch (DibiException $e) {
-            $this->db->rollback();
-            return false;
-        }
     }
 
     /**

@@ -1,0 +1,15 @@
+services:
+	- App\Router\RouterFactory::createRouter
+	- App\Forms\SignFormFactory
+	- App\Models\UserModel
+	- App\Forms\ReadBarCodeFormFactory
+	- App\Forms\SetStockDocFormFactory
+	- App\Models\MaterialModel
+	- App\Models\DeliveryNoteModel
+	- App\Models\ProductionModel
+
+search:
+	-	in: %appDir%
+		classes:
+			- *Factory
+			- *Facade

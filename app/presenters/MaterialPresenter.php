@@ -5,8 +5,7 @@ namespace App\Presenters;
 use App\Models\MaterialModel,
     App\Forms\SetStockDocFormFactory,
     App\Forms\ReadBarCodeFormFactory,
-    Nette\Application\UI\Form,
-    Joseki\Application\Responses\PdfResponse;
+    Nette\Application\UI\Form;
 
 class MaterialPresenter extends BasePresenter
 {
@@ -40,71 +39,7 @@ class MaterialPresenter extends BasePresenter
     public function renderDefault()
     {
         // \Tracy\Debugger::barDump($this->showSession());
-    }
-
-    /* ------------- změna - vyhledání dokladu - příjemka i výdejka ------------------------------ */
-
-    /**
-     * 
-     */
-    public function actionChangeStockDoc()
-    {
-        $this->getSession('dispatch')->remove();
-        $this->redirect("Material:default");
-    }
-
-    /**
-     * SetStockDoc form factory.
-     * vyhledání skladového dokladu - dodací list nebo převodka ze Schenkeru
-     * 
-     * @return Nette\Application\UI\Form
-     */
-    protected function createComponentSetStockDocForm()
-    {
-        $this->getSession('dispatch')->remove();
-        $form = $this->setStockDocFactory->create();
-        $form->onSuccess[] = function (Form $form, $values) {
-
-            $doc = $this->dataModel->getStockDocPZ($values->ParovaciZnak);
-            if (!$doc) {
-                $this->flashMessage('Vybraný doklad není v evidenci!', 'error');
-
-                $this->redirect('Material:default');
-            } else {
-
-                // podle typu dokladu pokračovat jako převodka ze Schenkeru nebo dodací list ze mlýna - kontrola!!!
-                if ($doc->DispatchType == 'fromSchenker' || $doc->DispatchType == 'receipt') {
-                    $dispatchIdSess = $this->getSession('dispatch');
-                    $dispatchIdSess->dispatchId = $doc->ID;
-                    $dispatchIdSess->dispatchType = $doc->DispatchType;
-
-                    if (isset($dispatchIdSess)) {
-                        $this->redirect('Material:showDispatch');
-                    }
-                } elseif ($doc->DispatchType == 'delivery') {
-                    $dispatchIdSess = $this->getSession('dispatch');
-                    $dispatchIdSess->dispatchId = $doc->ID;
-                    $dispatchIdSess->dispatchType = $doc->DispatchType;
-/*                    $deliveryNoteIdSess = $this->getSession('deliveryNoteId');
-                    $deliveryNoteIdSess->deliveryNoteId = $doc->ID;
-                    $deliveryNoteIdSess->dispatchType = $doc->DispatchType;*/
-    
-                    $this->redirect('DeliveryNote:default');
-/*                    $dispatchIdSess = $this->getSession('dispatch');
-                    $dispatchIdSess->dispatchId = $doc->ID;
-                    $dispatchIdSess->dispatchType = $doc->DispatchType;
-
-                    if (isset($dispatchIdSess)) {
-                        $this->redirect('Material:showDispatch');
-                    }*/
-                } else {
-                    $this->flashMessage("Doklad nelze takto zpracovat!");
-                    $this->redirect('Material:default');
-                }
-            }
-        };
-
-        return $form;
+        $this->template->nadpis = 'Sklad převody';
     }
 
     /* ============================= VÝDEJKA =================================== */
@@ -227,6 +162,7 @@ class MaterialPresenter extends BasePresenter
                 $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
             }
 
+            $this->template->nadpis = 'Převodka: ' . $dispatch->ParovaciZnak;
             \Tracy\Debugger::barDump($dispatch);
         }
         \Tracy\Debugger::barDump($this->getSession('dispatch')->dispatchId);
@@ -288,99 +224,6 @@ class MaterialPresenter extends BasePresenter
         };
 
         return $form;
-    }
-
-    /**
-     * zobrazení detailu položky výdejky
-     * @param type $itemId
-     */
-    public function renderDispatchItemDetail($itemId)
-    {
-        $this->dispatchId = $this->getSession('dispatch')->dispatchId;
-        $dispatch = $this->dataModel->getDispatch($this->dispatchId);
-        $dispatchItem = $this->dataModel->getDispatchItem($itemId);
-        $dispatchType = $this->getSession('dispatch')->dispatchType;
-
-        if (!$dispatchItem) {
-            $this->redirect('Material:showDispatch');
-        }
-        $dispatchItemSNs = $this->dataModel->getDispatchItemSN($itemId);
-
-        // kontrola, kdy to můžu udělat 
-        $this->template->dispatchNr = $dispatch->ParovaciZnak;
-        $this->template->dispatch = $dispatch;
-        $this->template->dispatchItem = $dispatchItem;
-        $this->template->dispatchItemSNs = $dispatchItemSNs;
-        $this->template->dispatchType = $dispatchType;
-
-        if ($this["readBarCodeForm"]) {
-            $readBarCodeDefaults = array('dispatchId' => $this->dispatchId);
-            $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
-        }
-
-        \Tracy\Debugger::barDump($dispatchItem);
-    }
-
-    /**
-     * úprava množství výrobního čísla při zadání čárovým kódem
-     * @param type $serialNumberRow
-     */
-    public function renderSetQuantity($dispatchId, $serialNumber)
-    {
-        $dispatch = $this->dataModel->getDispatch($dispatchId);
-        // kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-
-        $this->template->dispatchNr = $dispatch->ParovaciZnak;
-        $this->template->dispatch = $dispatch;
-
-        $serialNumberRow = $this->dataModel->checkSerialNumber($dispatchId, $serialNumber);
-        $this->template->dispatchId = $dispatchId;
-        $this->template->serialNumberRow = $serialNumberRow;
-
-        \Tracy\Debugger::barDump($serialNumberRow);
-
-        $setQuantityDefaults = array('dispatchId' => $dispatch->ID, 'idZboSklad' => $serialNumberRow->IDZboSklad, 'idVyrCis' => $serialNumberRow["IDVyrCis"], 'quantity' => ($serialNumberRow->MnozstviPoPrijmuAVydeji > ($serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava)) ? $serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava : $serialNumberRow->MnozstviPoPrijmuAVydeji);
-        $this["setQuantityForm"]->setDefaults($setQuantityDefaults);
-    }
-
-    /**
-     * formulář pro úpravu množství při zadání čárovým kódem
-     * @return type
-     */
-    public function createComponentSetQuantityForm()
-    {
-        $form = $this->setQuantityFactory->create();
-
-        // $form->onValidate[] = array($this, "validateEditQuantityForm");
-
-        $form->onSuccess[] = function (Form $form, $values) {
-
-            $itemId = $this->dataModel->updateDispatchItem($values->dispatchId, $values->idZboSklad, $values->idVyrCis, $values->quantity);
-
-            $this->redirect('Material:showDispatch');
-        };
-
-        return $form;
-    }
-
-    public function handleRemoveDispatchItem($itemId)
-    {
-        $this->dataModel->removeDispatchItem($itemId);
-
-        $this->redirect('Material:showDispatch');
-    }
-
-    public function handleRemoveDispatchItemSN($itemId, $itemSNId)
-    {
-        $dispatchType = $this->getSession('dispatch')->dispatchType;
-        if ($dispatchType == 'toSchenker') {
-            $this->dataModel->removeDispatchItemSN($itemSNId);
-        } else {
-            $this->dataModel->removeDispatchItemSNPrepare($itemSNId);
-        }
-
-
-        $this->redirect('Material:dispatchItemDetail', $itemId);
     }
 
     /** !!!

@@ -3,19 +3,12 @@
 namespace App\Forms;
 
 use Nette,
-    Nette\Application\UI\Form,
-    Kdyby\Translation\Translator;
+    Nette\Application\UI\Form;
     
 /**
  * formulář pro vyhledávání DL
  */
 class SetFinalOperationQuantityFormFactory {
-
-    private $translator;
-
-    public function __construct(Translator $translator) {
-        $this->translator = $translator;
-    }
 
     /**
      * @return Form
@@ -23,22 +16,21 @@ class SetFinalOperationQuantityFormFactory {
     public function create() {
 
         $form = new Form;
-        $form->setTranslator($this->translator);
         
         $form->addHidden('deliveryNoteId');
         $form->addHidden('serialNumber');
         $form->addText('quantity')
-                ->setAttribute('placeholder', 'Množství')
-                ->setAttribute('class', 'form-control form-control-sm text-center ajax')
-                ->setType('number')
+                ->setHtmlAttribute('placeholder', 'Množství')
+                ->setHtmlAttribute('class', 'form-control form-control-sm text-center ajax')
+                ->setHtmlType('number')
                 ->setRequired('Zadej množství')
-                ->setAttribute('autocomplete', false);
+                ->setHtmlAttribute('autocomplete', false);
 
         $form->addSubmit('send', 'Odvést')
-                ->setAttribute('class', 'btn btn-sm btn-success');
+                ->setHtmlAttribute('class', 'btn btn-sm btn-success');
 
         $form->addSubmit('cancel', 'Storno')
-                ->setAttribute('class', 'btn btn-sm btn-secondary');
+                ->setHtmlAttribute('class', 'btn btn-sm btn-secondary');
 
         return $form;
     }

@@ -32,6 +32,7 @@ class ProductionPresenter extends BasePresenter
     public function renderDefault()
     {
         // \Tracy\Debugger::barDump($this->showSession());
+        $this->template->nadpis = 'Odvádění z výroby';
     }
 
     /**
@@ -62,7 +63,7 @@ class ProductionPresenter extends BasePresenter
                 if ($sn->Odvedeno + $sn->OdvedenoNereal >= $sn->Zadane) {
                     $this->flashMessage('Už bylo jednou odvedeno!');
                 } else {
-                    $idPrijem = $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->username);
+                    $idPrijem = $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']);
                     // $this->flashMessage($idPrijem);
                 }
 
@@ -70,81 +71,10 @@ class ProductionPresenter extends BasePresenter
                 $this->flashMessage('Chybné číslo palety!');
             }
             $this->redirect('Production:');
-/*            
-            $idZboSklad = $this->dataModel->checkStdInventorySN($values->VyrCislo);
-
-            if (isset($idZboSklad) && $this->getSession('invHd')->invSkupZbo == '151') {
-                $res = $this->dataModel->processStdInventorySN($this->getSession('invHd')->invHdId, $values->VyrCislo, $idZboSklad, 1, false);
-
-                if ($res == 1) {
-                    $this->flashMessage('Není zadané výrobní číslo!', 'danger');
-                } elseif ($res == 2) {
-                    $this->flashMessage('Chybně zadaná skladová karta!', 'danger');
-                } elseif ($res == 3) {
-                    $this->flashMessage('Vybraná inventura je již uzavřená!', 'danger');
-                } elseif ($res == 4) {
-                    $this->flashMessage('Chybně zadaný sklad!', 'danger');
-                } elseif ($res == 5) {
-                    $this->flashMessage('Výrobní číslo ' . $values->VyrCislo . ' je už zaevidované!', 'danger');
-                } elseif ($res == 99) {
-                    $this->flashMessage('Chyba při úpravě položky inventury!', 'danger');
-                } else {
-                    // $this->flashMessage('Výrobní číslo bylo zaevidováno!', 'info');
-                }
-    
-                $this->redirect('Material:StdInventory');
-    
-            } else {
-                $this->redirect('Material:StdInventoryQty', $values->VyrCislo, $idZboSklad, $values->TisknoutStitek);
-            }
-*/
             \Tracy\Debugger::barDump($values);
         };
 
         return $form;
     }
 
-    /**
-     * formulář pro inventuru - zpracování dat po načtení VČ - dohledání v kmeni, doplnění množství
-     * @return type
-     */
- /*   protected function createComponentStdInventoryForm()
-    {
-        $prumerZao = $this->dataModel->getPrumer1Zao();
-        $nazevLaminatu = $this->dataModel->getLaminat();
-        $form = $this->stdInventoryFactory->create();
-        $form->onSuccess[] = function (Form $form, $values) {
-            if ($values->NewSN == 1) {
-                // generování VČ
-                $sn = $this->dataModel->generateSNSklad($values->IDZboSklad);
-                if (isset($sn) && $sn != '') {
-                    $values->VyrCislo = $sn;
-                }
-                \Tracy\Debugger::barDump($sn);
-            }
-
-            $res = $this->dataModel->processStdInventorySN($this->getSession('invHd')->invHdId, $values->VyrCislo, $values->IDZboSklad, $values->Mnozstvi, $values->NewSN);
-
-            if ($res == 1) {
-                $this->flashMessage('Není zadané výrobní číslo!', 'danger');
-            } elseif ($res == 2) {
-                $this->flashMessage('Chybně zadaná skladová karta!', 'danger');
-            } elseif ($res == 3) {
-                $this->flashMessage('Vybraná inventura je již uzavřená!', 'danger');
-            } elseif ($res == 4) {
-                $this->flashMessage('Chybně zadaný sklad!', 'danger');
-            } elseif ($res == 99) {
-                $this->flashMessage('Chyba při úpravě položky inventury!', 'danger');
-            } else {
-                $this->flashMessage('Výrobní číslo bylo zaevidováno!', 'info');
-            }
-
-            \Tracy\Debugger::barDump($values);
-
-            $this->redirect('Material:StdInventory');
-        };
-
-        return $form;
-    }
-    */
 }

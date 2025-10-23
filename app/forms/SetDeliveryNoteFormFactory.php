@@ -3,19 +3,12 @@
 namespace App\Forms;
 
 use Nette,
-    Nette\Application\UI\Form,
-    Kdyby\Translation\Translator;
+    Nette\Application\UI\Form;
     
 /**
  * formulář pro vyhledávání DL
  */
 class SetDeliveryNoteFormFactory {
-
-    private $translator;
-
-    public function __construct(Translator $translator) {
-        $this->translator = $translator;
-    }
 
     /**
      * @return Form
@@ -23,17 +16,16 @@ class SetDeliveryNoteFormFactory {
     public function create() {
 
         $form = new Form;
-        $form->setTranslator($this->translator);
         
         $form->addText('ParovaciZnak', 'Číslo dodacího listu')
-                ->setAttribute('placeholder', 'Číslo dodacího listu')
-                ->setAttribute('class', 'form-control form-control-lg')
-                ->setType('number')
+                ->setHtmlAttribute('placeholder', 'Číslo dodacího listu')
+                ->setHtmlAttribute('class', 'form-control form-control-lg')
+                ->setHtmlType('number')
                 ->setRequired('Zadej číslo dodacího listu')
-                ->setAttribute('autocomplete', false);
+                ->setHtmlAttribute('autocomplete', false);
 
         $form->addSubmit('send', 'form.labels.select')
-                ->setAttribute('class', 'btn btn-lg btn-secondary');
+                ->setHtmlAttribute('class', 'btn btn-lg btn-secondary');
 
         return $form;
     }

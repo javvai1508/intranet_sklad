@@ -1,0 +1,7 @@
+parameters:
+
+
+database:
+	dsn: 'sqlsrv:Server=10.0.0.6;Database=Helios002'
+	user: 'vinkler'
+	password: 'Jizera852'

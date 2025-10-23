@@ -86,7 +86,9 @@ i.far {
     font-size: 1em;
 }
 .logged {
+    float: right;
     text-align: right;
+    display: inline;
     margin: 4px;
     z-index: 400;
 }
@@ -97,7 +99,7 @@ i.far {
     min-width: 30px;
 }
 .logged-user {
-    font-size: 1.5em;
+    font-size: 1.2em;
     color: #8cbc46;
     border-top: none;
 }

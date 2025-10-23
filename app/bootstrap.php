@@ -1,22 +1,33 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+declare(strict_types=1);
 
-$configurator = new Nette\Configurator;
+namespace App;
 
-// $configurator->setDebugMode('192.168.90.26', '192.168.90.10'); // enable for your remote IP
-$configurator->setDebugMode(FALSE); // enable for your remote IP
-$configurator->enableTracy(__DIR__ . '/../log');
+use Nette\Bootstrap\Configurator;
 
-$configurator->setTimeZone('Europe/Prague');
-$configurator->setTempDirectory(__DIR__ . '/../temp');
 
-$configurator->createRobotLoader()
-	->addDirectory(__DIR__)
-	->register();
+class Bootstrap
+{
+	public static function boot(): Configurator
+	{
+		$configurator = new Configurator;
+		$appDir = dirname(__DIR__);
 
-$configurator->addConfig(__DIR__ . '/config/config.neon');
+		//$configurator->setDebugMode('46.13.201.253');
+		$configurator->setDebugMode(true);
+		$configurator->enableTracy($appDir . '/log');
 
-$container = $configurator->createContainer();
+		$configurator->setTempDirectory($appDir . '/temp');
 
-return $container;
+		$configurator->createRobotLoader()
+			->addDirectory(__DIR__)
+			->register();
+
+		$configurator->addConfig($appDir . '/config/common.neon');
+		$configurator->addConfig($appDir . '/config/services.neon');
+		$configurator->addConfig($appDir . '/config/local.neon');
+
+		return $configurator;
+	}
+}

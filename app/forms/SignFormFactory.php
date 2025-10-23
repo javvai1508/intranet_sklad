@@ -3,65 +3,50 @@
 namespace App\Forms;
 
 use Nette,
-    //Lang,
     Nette\Application\UI\Form,
-    Nette\Security\User,
-    Kdyby\Translation\Translator;
+    Nette\Security\User;
 
-/**
- * formulář pro přihlášení
- */
-class SignFormFactory{
+class SignFormFactory
+{
 
-    use Nette\SmartObject;
-    
     /** @var User */
     private $user;
-    private $translator;
-    public $vaiale;
 
-    public function __construct(User $user, Translator $translator) {
+    public function __construct(User $user) 
+    {
         $this->user = $user;
-        $this->translator = $translator;
     }
 
-    /**
-     * @return Form
-     */
-    public function create() {
+    public function create(): Form
+    {
         $form = new Form;
-        $form->setTranslator($this->translator);
-        $form->addText('username', 'Osobní číslo')
-                ->setRequired('Zadejte osobní číslo')
-                ->setAttribute('class', 'form-control')
-                ->setType('number')
-                ->setAttribute('placeholder', 'Osobní číslo');
+        $form->addText('username', 'Jméno')
+                ->setRequired('Zadejte jméno')
+                ->setHtmlAttribute('class', 'form-control')
+                ->setHtmlAttribute('placeholder', 'Jméno');
+/*        $form->addPassword('password', 'Heslo')
+                ->setRequired('Zadejte heslo')
+                ->setHtmlAttribute('class', 'form-control')
+                ->setHtmlAttribute('placeholder', 'Heslo');
 
-        $form->addCheckbox('remember', 'form.labels.remember');
+        $form->addCheckbox('remember', 'Zapamatuj si mě');*/
         
-        // $form->addCheckbox('onlySign', 'form.labels.nexttimesignin');
-
-        $form->addSubmit('send', 'form.labels.signin')
-                ->setAttribute('class', 'btn btn-lg btn-primary col-xs-12');
+        $form->addSubmit('send', 'Přihlásit')
+                ->setHtmlAttribute('class', 'btn btn-lg btn-primary col-xs-12');
 
         $form->onSuccess[] = [$this, 'formSucceeded'];
         return $form;
     }
     
     /**
-     * zpracování formuláře
      * @param type $form
      * @param type $values
      */
     public function formSucceeded($form, $values) {
-        if ($values->remember) {
-            $this->user->setExpiration('14 days', FALSE);
-        } else {
-            $this->user->setExpiration('2 hours', TRUE);
-        }
+        $this->user->setExpiration('12 hours', TRUE);
 
         try {
-            $this->user->login($values->username);
+            $this->user->login($values->username, '');
         } catch (Nette\Security\AuthenticationException $e) {
             $form->addError($e->getMessage());
         }

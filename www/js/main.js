@@ -1,7 +1,7 @@
 /* 
  * 
  */
-var beep = (function () {
+/*var beep = (function () {
     var ctxClass = window.audioContext ||window.AudioContext || window.AudioContext || window.webkitAudioContext
     var ctx = new ctxClass();
     return function (duration, type, frequency, finishedCallback) {
@@ -32,8 +32,9 @@ var beep = (function () {
         }, duration);
 
     };
-})();
+})();*/
 
+/*
  $(function () {
     $.nette.init();
 
@@ -46,17 +47,6 @@ var beep = (function () {
             drawFlashMessage();
         }
     });
-
-    //** Start datepicker **/
-    /*
-     $.fn.datepicker.defaults.language = 'cs';
-     $.fn.datepicker.defaults.autoclose = true;
-     $.fn.datepicker.defaults.format = 'dd.mm.yyyy';
-     
-     $(".date").datepicker({});
-     $(".input-daterange").datepicker({});
-     */
-    //** End datepicker **/
 
     $('.today').on('click', function () {
         var date = new Date(),
@@ -75,12 +65,12 @@ var beep = (function () {
 
     });
 
-    /* clickable table row */
+    // clickable table row 
     $(".clickable-row").click(function() {
         window.location = $(this).data("href");
     });
 
-    /* edit quantity */
+    // edit quantity 
     $('body').on('click', '.quantity-span', function () {
         // alert("click");
         var itemSNId = $(this).attr('data-sn-id');
@@ -100,8 +90,8 @@ var beep = (function () {
         $(this).parents('.edit-quantity-form').siblings('.quantity-span').show();
     });
 
-    /* ------------------ materiál zákazníka ---------------------------------*/
-    /* změna čísla odběratele - dotáhnout název firmy */
+    // ------------------ materiál zákazníka ---------------------------------
+    // změna čísla odběratele - dotáhnout název firmy 
     $("#frm-newCustMaterialForm-CisloOrg").on("input", function (e) {
         var el = $(this);
         // alert(el.closest("div").attr("odkaz") + "&cisloOrg=" + el.val());
@@ -118,7 +108,7 @@ var beep = (function () {
         }
     });
 
-    /* autocomplete firma */
+    // autocomplete firma 
     $("#frm-newCustMaterialForm-Firma").autocomplete({
         source: function (request, response) {
             $.nette.ajax({
@@ -136,15 +126,15 @@ var beep = (function () {
         delay: 500
     });
 
-    /* po opuštění pole firma dotáhnout číslo organizace */
+    // po opuštění pole firma dotáhnout číslo organizace 
     $("#frm-newCustMaterialForm-Firma").blur(function () {
         var cisloOrg = $(this).val().substring($(this).val().indexOf("(") + 1, $(this).val().indexOf(")"));
         // alert(cisloOrg);
         $("#frm-newCustMaterialForm-CisloOrg").val(parseInt(cisloOrg));
     });
 
-    /* ------------------ příjem materiálu ---------------------------------*/
-    /* změna čísla odběratele - dotáhnout název firmy */
+    // ------------------ příjem materiálu --------------------------------
+    // změna čísla odběratele - dotáhnout název firmy 
     $("#frm-setOrderForm-CisloOrg").on("input", function (e) {
         var el = $(this);
         // alert(el.closest("div").attr("odkaz") + "&cisloOrg=" + el.val());
@@ -161,7 +151,7 @@ var beep = (function () {
         }
     });
 
-    /* autocomplete firma */
+    // autocomplete firma 
     $("#frm-setOrderForm-Firma").autocomplete({
         source: function (request, response) {
             $.nette.ajax({
@@ -179,7 +169,7 @@ var beep = (function () {
         delay: 500
     });
 
-    /* autocomplete číslo objednávky */
+    // autocomplete číslo objednávky 
     $("#frm-setOrderForm-ParovaciZnak").autocomplete({
         source: function (request, response) {
             $.nette.ajax({
@@ -197,14 +187,14 @@ var beep = (function () {
         delay: 500
     });
 
-    /* po opuštění pole firma dotáhnout číslo organizace */
+    // po opuštění pole firma dotáhnout číslo organizace 
     $("#frm-setOrderForm-Firma").blur(function () {
         var cisloOrg = $(this).val().substring($(this).val().indexOf("(") + 1, $(this).val().indexOf(")"));
         // alert(cisloOrg);
         $("#frm-setOrderForm-CisloOrg").val(parseInt(cisloOrg));
     });
 
-    /* po opuštění pole číslo objednávky dotáhnout údaje o firmě +  kontrola existence a stavu objednávky*/
+    // po opuštění pole číslo objednávky dotáhnout údaje o firmě +  kontrola existence a stavu objednávky
     $("#frm-setOrderForm-ParovaciZnak").blur(function () {
         var el = $(this);
         // alert(el.closest("div").attr("odkaz") + "&cisloOrg=" + el.val());
@@ -221,7 +211,7 @@ var beep = (function () {
         }
     });
 
-    /* generování výrobního čísla */
+    // generování výrobního čísla 
     $("#generateBCBtn").on("click", function (e) {
         e.preventDefault();
         var el = $(this);
@@ -236,14 +226,14 @@ var beep = (function () {
         });
     });
 
-    /* na enter doplnit fokus na další input */
+    // na enter doplnit fokus na další input 
     $(".no-enter").on("keydown", function (e) {
         if (e.keyCode == 13) {
             e.preventDefault();
         }
     });
 
-    /* inventura - výběr typu laminátu */
+    // inventura - výběr typu laminátu 
     $('#frm-startInventoryForm-TypLaminatu').change(function(){
         var attr = $('#selectTypLaminatu').attr('odkaz');
         attr = attr + '&typLaminatu=' + $('#frm-startInventoryForm-TypLaminatu').val();
@@ -258,7 +248,7 @@ var beep = (function () {
         });
     });
     
-    /* inventura - výběr průměru laminátu */
+    // inventura - výběr průměru laminátu 
     $('#frm-startInventoryForm-Prumer1').change(function(){
         var attr = $('#selectPrumerLaminatu').attr('odkaz');
         attr = attr + '&typLaminatu=' + $('#frm-startInventoryForm-TypLaminatu').val() + '&prumerLaminatu=' + $('#frm-startInventoryForm-Prumer1').val();
@@ -281,7 +271,7 @@ var beep = (function () {
     $("select:visible:first").focus();
 });
 
-/* --------- listener pro redraw inventura ---------- */
+// --------- listener pro redraw inventura ---------- 
 function attachListener(){
     $('#frm-startInventoryForm-Prumer1').change(function(){
         var attr = $('#selectPrumerLaminatu').attr('odkaz');
@@ -298,7 +288,7 @@ function attachListener(){
     });
 }
 
-/* --------- Flash messages in modal window --------- */
+// --------- Flash messages in modal window --------- 
 function drawFlashMessage() {
     // alert('Hop sem' + $('.flash').length);
     if (!($('.flash').attr('data-message') === undefined)) {
@@ -350,7 +340,7 @@ function drawFlashMessage() {
     }
 }
 
-/* nette forms alerts display in modal window */
+// nette forms alerts display in modal window 
 function drawNetteFormAlert() {
     Nette.addError = function (elem, message) {
 
@@ -392,7 +382,7 @@ function drawNetteFormAlert() {
 
 }
 
-/* ---------- Page width functions ---------- */
+// ---------- Page width functions ---------- 
 $(window).on("resize", widthFunctions);
 // $(document).on("ready", widthFunctions);
 
@@ -410,5 +400,6 @@ function widthFunctions(e) {
     $('.content').css('min-height', winHeight - footerHeight);
     // alert('win:' + winHeight + '/hd:' + headerHeight + '/ft:' + footerHeight + '/ctPad:' + contentPadding + '???');
 }
-/* ---------- End of Page width functions ---------- */
+// ---------- End of Page width functions ---------- 
+*/
 

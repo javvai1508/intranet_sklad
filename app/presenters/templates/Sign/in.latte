@@ -1,17 +1,11 @@
 {block content}
-{translator sign /}
-<div class="row content sign">
+<div class="row">
     <div class="col-sm-4 offset-sm-4 col-lg-2 offset-lg-5 text-center">
         <h3>Přihlášení</h3>
         {form signInForm}
 
             {foreach $form->controls as $input}
-                {if $input->name == "remember"}
-                    <div class="form-check mb-2">
-                        <input n:name=remember />
-                        <label>{_sign.remember}</label>
-                    </div>
-                {elseif $input->name == "send"}
+                {if $input->name == "send"}
                     {input $input}
                 {else}
                     <div class="input-group mb-2">	
@@ -31,4 +25,3 @@
         <div class="clearfix"></div>
     </div>
 </div>
-
