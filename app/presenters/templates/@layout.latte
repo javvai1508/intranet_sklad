@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width" initial-scale="1">
 
-        <title>MLÝN PERNER - intranet sklad</title>
+        <title>Perner - sklad</title>
         <!-- bootstrap - latest compiled and minified CSS -->
     	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
         <!-- font awesome css -->
@@ -15,14 +15,30 @@
     </head>
 
     <body>
-        <div n:foreach="$flashes as $flash" class="flash {$flash->type}" data-message-type="{$flash->type}" data-message="{$flash->message}"></div>
+        <div n:foreach="$flashes as $flash" n:class="flash, $flash->type">
+            <div id="flash" class="modal fade" tabindex="-1" aria-modal="true" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title" id="myModalLabel">Upozornění</h2>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zavřít" onclick="closeModal()"></button>
+                        </div>
+                        <div class="modal-body">
+                            {$flash->message|breaklines}
+                        </div>
+                        <div class="modal-footer">
+                            <button id="ok" type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="closeModal()">Ok</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-backdrop fade show" id="backdrop" style="display: none;"></div>
+        </div>
+
 
         <div class="container-fluid">
             <div class="row header">
-                <div class="col-8">
-                    <h1>{isset($nadpis) ? $nadpis : 'Nadpis'}</h1>
-                </div>
-                <div class="col-4">
+                <div class="col-3">
                     {if $user->isLoggedIn()}
                     <div class="logged">
                         <div class="btn-group">    
@@ -38,6 +54,9 @@
                             </div>
                         </div>
                     </div>
+                </div>
+                <div class="col-9">
+                    <h1>{isset($nadpis) ? $nadpis : 'Nadpis'}</h1>
                 </div>
                 {/if}
 

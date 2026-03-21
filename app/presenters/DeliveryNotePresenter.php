@@ -20,20 +20,8 @@ class DeliveryNotePresenter extends BasePresenter {
     /** @var ReadBarCodeFormFactory @inject */
     public $readBarCodeFactory;
 
-    /** @var SetQuantityFormFactory @inject */
-    public $setQuantityFactory;
-
-    /** @var SetFinalOperationQuantityFormFactory @inject */
-    public $setFinalOperationQuantityFactory;
-
     /** @var DeliveryNoteId */
     private $deliveryNoteId;
-
-    /** @var PackageNr */
-    private $packageNr;
-
-    /** @var packageOpen */
-    private $packageOpen;
 
     public function __construct() {
         parent::__construct();
@@ -48,8 +36,8 @@ class DeliveryNotePresenter extends BasePresenter {
     }
 
     public function renderDefault() {
-        if (isset($this->getSession('dispatch')->dispatchId)) {
-            $this->deliveryNoteId = $this->getSession('dispatch')->dispatchId;
+        if (isset($this->getSession('deliveryNote')->deliveryNoteId)) {
+            $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
 
             $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
             $deliveryNoteItems = $this->dataModel->getDeliveryNoteItems($this->deliveryNoteId);
@@ -57,7 +45,6 @@ class DeliveryNotePresenter extends BasePresenter {
             $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
             $this->template->deliveryNote = $deliveryNote;
             $this->template->deliveryNoteItems = $deliveryNoteItems;
-            $this->template->packageOpen = $this->packageOpen;
 
             if ($this["readBarCodeForm"]) {
                 $readBarCodeDefaults = array('deliveryNoteId' => $this->deliveryNoteId);
@@ -65,6 +52,7 @@ class DeliveryNotePresenter extends BasePresenter {
             }
             \Tracy\Debugger::barDump($this->template->deliveryNote);
         }
+        // když není deliveryNoteId zobrazit formulář pro výběr
 
 // \Tracy\Debugger::barDump($this->showSession());
     }
@@ -88,8 +76,8 @@ class DeliveryNotePresenter extends BasePresenter {
                 $this->redirect('DeliveryNote:default');
             } else {
 
-                $dispatchIdSess = $this->getSession('dispatch');
-                $dispatchIdSess->deliveryNoteId = $dispatchIdSess->dispatchId;
+                $deliveryNoteIdSess = $this->getSession('deliveryNote');
+                $deliveryNoteIdSess->deliveryNoteId = $deliveryNoteId;
 
                 $this->redirect('DeliveryNote:default');
             }
@@ -171,219 +159,29 @@ class DeliveryNotePresenter extends BasePresenter {
     }
 
     /**
-     * evidence odváděcí operace
-     * @param type $serialNumber
-     */
-    public function actionFinalizeOperation($deliveryNoteId, $serialNumber) {
-        $res = $this->dataModel->finalizeOperation($this->user->getIdentity()->getData()['username'], $serialNumber);
-        if ($res <> "") {
-            $this->flashMessage($res, 'error');
-        } else {
-// znovu pustit zpracování výrobního čísla
-            $this->processBarCode($deliveryNoteId, $serialNumber);
-        }
-    }
-
-    /**
-     * úprava množství výrobního čísla při odvádění operace se šarží
-     * @param int $deliveryNoteId
-     * @param string $serialNumber
-     */
-    public function renderSetFinalOperationQuantity($deliveryNoteId, $serialNumber, $availableQty) {
-        $deliveryNote = $this->dataModel->getDeliveryNote($deliveryNoteId);
-// kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-
-        $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
-        $this->template->deliveryNote = $deliveryNote;
-        $this->packageNr = $this->getSession('package')->number;
-        $this->packageOpen = $this->getSession('package')->open;
-
-        $serialNumberRow = $this->dataModel->checkSerialNumber($deliveryNoteId, $serialNumber);
-        $this->template->deliveryNoteId = $deliveryNoteId;
-        $this->template->serialNumberRow = $serialNumberRow;
-        $this->template->packageOpen = $this->packageOpen;
-        $this->template->serialNumber = $serialNumber;
-
-        \Tracy\Debugger::barDump($serialNumberRow);
-
-        $setQuantityDefaults = array('deliveryNoteId' => $deliveryNote->ID, 'serialNumber' => $serialNumber, 'quantity' => $availableQty);
-        $this["setFinalOperationQuantityForm"]->setDefaults($setQuantityDefaults);
-    }
-
-    /**
-     * formulář pro úpravu množství při odvádění operace se šarží
-     * @return type
-     */
-    public function createComponentSetFinalOperationQuantityForm() {
-        $form = $this->setFinalOperationQuantityFactory->create();
-
-// $form->onValidate[] = array($this, "validateEditQuantityForm");
-
-        $form->onSuccess[] = function (Form $form, $values) {
-
-            if ($form['send']->isSubmittedBy()) {
-                $this->actionFinalizeOperation($values->deliveryNoteId, $values->serialNumber);
-            }
-
-
-            $this->redirect('DeliveryNote:default');
-        };
-
-        return $form;
-    }
-
-    /**
-     * úprava množství výrobního čísla při zadání čárovým kódem
-     * @param type $serialNumberRow
-     */
-    public function renderSetQuantity($deliveryNoteId, $serialNumber) {
-        $deliveryNote = $this->dataModel->getDeliveryNote($deliveryNoteId);
-// kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-
-        $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
-        $this->template->deliveryNote = $deliveryNote;
-        $this->packageNr = $this->getSession('package')->number;
-        $this->packageOpen = $this->getSession('package')->open;
-
-        $serialNumberRow = $this->dataModel->checkSerialNumber($deliveryNoteId, $serialNumber);
-        $this->template->deliveryNoteId = $deliveryNoteId;
-        $this->template->serialNumberRow = $serialNumberRow;
-        $this->template->packageOpen = $this->packageOpen;
-
-        \Tracy\Debugger::barDump($serialNumberRow);
-
-        $setQuantityDefaults = array('deliveryNoteId' => $deliveryNote->ID, 'idPohyb' => $serialNumberRow->IDPohyb, 'idVyrCis' => $serialNumberRow->IDVyrCis, 'quantity' => ($serialNumberRow->MnozstviPoPrijmuAVydeji > ($serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava)) ? $serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava : $serialNumberRow->MnozstviPoPrijmuAVydeji);
-        $this["setQuantityForm"]->setDefaults($setQuantityDefaults);
-    }
-
-    /**
-     * formulář pro úpravu množství při zadání čárovým kódem
-     * @return type
-     */
-    public function createComponentSetQuantityForm() {
-        $form = $this->setQuantityFactory->create();
-
-// $form->onValidate[] = array($this, "validateEditQuantityForm");
-
-        $form->onSuccess[] = function (Form $form, $values) {
-
-            $packageSess = $this->getSession('package');
-            $packageOpen = $packageSess->open;
-            $packageNr = $packageSess->number;
-
-            $packageNr = $this->dataModel->updateDeliveryNoteItem($values->deliveryNoteId, $values->idPohyb, $values->idVyrCis, $values->quantity, $packageOpen, $packageNr);
-            $packageSess->number = $packageNr;
-
-            $this->redirect('DeliveryNote:itemDetail', $values->idPohyb);
-        };
-
-        return $form;
-    }
-
-    /**
-     * úprava množství výrobního čísla při zadání skladové položky (serviety)
-     * @param type $serialNumberRow
-     */
-    public function renderSetQuantityFromStock($deliveryNoteId, $serialNumber) {
-        $deliveryNote = $this->dataModel->getDeliveryNote($deliveryNoteId);
-// kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-
-        $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
-        $this->template->deliveryNote = $deliveryNote;
-        $this->packageNr = $this->getSession('package')->number;
-        $this->packageOpen = $this->getSession('package')->open;
-
-        $serialNumberRow = $this->dataModel->checkSerialNumber($deliveryNoteId, $serialNumber);
-        $this->template->deliveryNoteId = $deliveryNoteId;
-        $this->template->serialNumberRow = $serialNumberRow;
-        $this->template->packageOpen = $this->packageOpen;
-
-        \Tracy\Debugger::barDump($serialNumberRow);
-
-        $setQuantityDefaults = array('deliveryNoteId' => $deliveryNote->ID, 'idPohyb' => $serialNumberRow->IDPohyb, 'idVyrCis' => $serialNumberRow->IDVyrCis, 'quantity' => ($serialNumberRow->MnozstviPoPrijmuAVydeji > ($serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava)) ? $serialNumberRow->MnozstviPozadavek - $serialNumberRow->MnozstviPriprava : $serialNumberRow->MnozstviPoPrijmuAVydeji);
-        $this["setQuantityForm"]->setDefaults($setQuantityDefaults);
-    }
-
-    /**
-     * formulář pro úpravu množství při zadání skladové položky
-     * @return type
-     */
-    public function createComponentSetQuantityFromStockForm() {
-        $form = $this->setQuantityFactory->create();
-
-// $form->onValidate[] = array($this, "validateEditQuantityForm");
-
-        $form->onSuccess[] = function (Form $form, $values) {
-
-            $packageSess = $this->getSession('package');
-            $packageOpen = $packageSess->open;
-            $packageNr = $packageSess->number;
-
-            $res = $this->dataModel->processDeliveryNoteFromStock($values->deliveryNoteId, $values->IDPohyb, $values->quantity, $packageOpen, $packageNr);
-            if ($res["res"] > 0) {
-                $this->flashMessage('Položka je již splněná, případně není co vydávat!', 'error');
-            } else {
-                $packageSess->number = $res["packageNr"];
-                if ($res["mnozstviPriprava"] <> 0) {
-                    $this->flashMessage('Všechny požadované kusy nejsou k dipozici, zbylo ještě ' . $res["mnozstviPriprava"], 'info');
-                }
-                
-            }
-            
-            $this->redirect('DeliveryNote:itemDetail', $values->idPohyb);
-        };
-
-        return $form;
-    }
-
-    /**
      * nový výběr dodacího listu
      */
     public function handleChangeDeliveryNote() {
-        $this->getSession('dispatch')->remove();
-        $this->redirect('Material:default');
-    }
-
-    /**
-     * generování PDF s rozdíly v DL - neodeslané zboží
-     */
-    public function createDeliveryNoteErrorPDF($deliveryNoteId) {
-        $template = $this->createTemplate();
-        $template->setFile(__DIR__ . "/templates/DeliveryNote/deliveryNoteErrorPDF.latte");
-        $deliveryNote = $this->dataModel->getDeliveryNote($deliveryNoteId);
-        $deliveryNoteItems = $this->dataModel->getDeliveryNoteDiffItems($deliveryNoteId);
-        $template->deliveryNote = $deliveryNote;
-        $template->deliveryNoteItems = $deliveryNoteItems;
-        
-        $pdf = new \Joseki\Application\Responses\PdfResponse($template);
-
-        $pdf->pageFormat = "A4";
-        $pdf->setPageMargins("10, 10, 10, 10, 1, 1");
-        $pdf->styles = file_get_contents("c:\\inetpub\\wwwroot\\www\\css\\pdf-style.css");
-        $pdf->getMPDF()->setFooter("Ligum Intranet");
-
-        /* server */
-        $pdf->save("e:\\fs\\data_helios\\TBLT_EXPED_NH\\",  "dl" . $deliveryNote->ParovaciZnak);        
-        // \Tracy\Debugger::barDump($printCmd);
-
+        $this->getSession('deliveryNote')->remove();
+        $this->redirect('DeliveryNote:default');
     }
 
     /**
      * uzavření dodacího listu
      */
     public function handleCloseDeliveryNote() {
-        $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('dispatch')->dispatchId);
+        $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
 /*
         if ($deliveryNote->SkupinaTisk == 'nh') {
-            $res = $this->dataModel->checkDeliveryNoteBeforeClosing($this->getSession('dispatch')->dispatchId);
+            $res = $this->dataModel->checkDeliveryNoteBeforeClosing($this->getSession('deliveryNote')->deliveryNoteId);
             // $this->flashMessage($res);
             // odeslání zprávy o nedodaném zboží
             if ($res > 0) {
                 // generovat PDF
-                $this->createDeliveryNoteErrorPDF($this->getSession('dispatch')->dispatchId);
+                $this->createDeliveryNoteErrorPDF($this->getSession('deliveryNote')->deliveryNoteId);
                 // generovat soubor s mailem, kam to poslat
-                $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('dispatch')->dispatchId);
-                $responsibleMail = $this->dataModel->getResponsibleMail($this->getSession('dispatch')->dispatchId);
+                $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
+                $responsibleMail = $this->dataModel->getResponsibleMail($this->getSession('deliveryNote')->deliveryNoteId);
                 $f = fopen("e:\\fs\\data_helios\\TBLT_EXPED_NH\\" . "dl" . $deliveryNote->ParovaciZnak . ".pdf.to", "w");
                 fwrite($f, $responsibleMail);
                 fclose($f);
@@ -392,47 +190,19 @@ class DeliveryNotePresenter extends BasePresenter {
         // \Tracy\Debugger::barDump($deliveryNote);
         // $this->redirect('DeliveryNote:default');
 */
-        $res = $this->dataModel->closeDeliveryNote($this->getSession('dispatch')->dispatchId);
+        $res = $this->dataModel->closeDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
         if (!$res) {
             $this->flashMessage('Dodací list se nepodařilo uzavřít!', 'danger');
         } else {
 // vytvořit soubor v adresáři pro tisk DL
 /*
-            $f = fopen("c:\\inetpub\\wwwroot\\www\\batch_" . $deliveryNote->SkupinaTisk . "\\" . $this->getSession('dispatch')->dispatchId . ".txt", "w");
-            fwrite($f, $this->getSession('dispatch')->dispatchId);
+            $f = fopen("c:\\inetpub\\wwwroot\\www\\batch_" . $deliveryNote->SkupinaTisk . "\\" . $this->getSession('deliveryNote')->deliveryNoteId . ".txt", "w");
+            fwrite($f, $this->getSession('deliveryNote')->deliveryNoteId);
 */
-            $this->getSession('dispatch')->remove();
+            $this->getSession('deliveryNote')->remove();
             $this->getSession('package')->remove();
             $this->redirect('Material:default');
         }
-    }
-
-    /**
-     * otevření nového balíku
-     */
-    public function handleOpenPackage() {
-// $deliveryNoteId = $this->getSession('deliveryNoteId')->deliveryNoteId;
-        $packageSess = $this->getSession('package');
-        if ($packageSess->open == true) {
-            $packageSess->number = $this->dataModel->getNextPackage($this->getSession('deliveryNoteId')->deliveryNoteId);
-        }
-        $packageSess->open = true;
-
-        $this->redirect('DeliveryNote:default');
-    }
-
-    /**
-     * uzavření balíku
-     */
-    public function handleClosePackage() {
-        $packageSess = $this->getSession('package');
-        if ($packageSess->open == true) {
-            $packageSess->number = $this->dataModel->getNextPackage($this->getSession('deliveryNoteId')->deliveryNoteId);
-            $packageSess->open = false;
-        }
-
-        \Tracy\Debugger::barDump($packageSess->packageNr);
-        $this->redirect('DeliveryNote:default');
     }
 
     /**
@@ -450,7 +220,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * @param type $itemId
      */
     public function renderItemDetail($itemId) {
-        $this->deliveryNoteId = $this->getSession('dispatch')->dispatchId;
+        $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
         $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
 // kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
 
@@ -475,63 +245,6 @@ class DeliveryNotePresenter extends BasePresenter {
     }
 
     /**
-     * úprava množství na výrobním čísle - inline v přehledu
-     * @return \Nette\Application\UI\Multiplier
-     */
-    protected function createComponentEditQuantityForm() {
-        return new \Nette\Application\UI\Multiplier(function($id) {
-            $form = new Form;
-            $form->addHidden('itemSNId', $id);
-            $form->addText('quantity')
-                    ->setType('number')
-                    ->setAttribute('class', 'form-control form-control-lg text-center ajax quantity-form-input');
-
-            $form->onValidate[] = array($this, "validateEditQuantityForm");
-
-            return $form;
-        });
-    }
-
-    /**
-     * validace změny množství na výrobním čísle
-     * @param type $form
-     * @param type $values
-     */
-    public function validateEditQuantityForm($form, $values) {
-// $values = $form->getHttpData();
-        \Tracy\Debugger::barDump($values);
-
-        $res = $this->dataModel->updateQuantitySN($values);
-
-        switch ($res) {
-            case 0:
-                break;
-            case 1:
-                $form->addError('Neplatný kód výrobního čísla!');
-                $this->flashMessage('Neplatný kód výrobního čísla!');
-                break;
-            case 2:
-                $form->addError('Nedostatek výrobního čísla skladem. Nelze vydat!');
-                $this->flashMessage('Nedostatek výrobního čísla skladem. Nelze vydat!');
-                break;
-            case 3:
-                $form->addError('Překročeno požadované množství. Nelze vydat!');
-                $this->flashMessage('Překročeno požadované množství. Nelze vydat!');
-                break;
-            case 9:
-                $form->addError('Chyba SQL');
-                $this->flashMessage('Chyba SQL');
-                break;
-            default:
-                $form->addError('Chyba?');
-                $this->flashMessage('Chyba?');
-                break;
-        }
-
-        $this->redirect('DeliveryNote:itemDetail', $this->presenter->getParameter("itemId"));
-    }
-
-    /**
      * smazání přípravy vybraného výrobního čísla
      * @param type $itemId
      * @param type $itemSNId
@@ -547,7 +260,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * @param type $deliveryNoteId
      */
     public function renderPackages() {
-        $this->deliveryNoteId = $this->getSession('dispatch')->dispatchId;
+        $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
         $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
 // kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
 // $deliveryNoteItem = $this->dataModel->getDeliveryNoteItem($itemId);
@@ -568,16 +281,6 @@ class DeliveryNotePresenter extends BasePresenter {
         }
 
         \Tracy\Debugger::barDump($deliveryNotePackages);
-    }
-
-    /**
-     * smazání položky z balíku
-     * @param type $packageId
-     */
-    public function handleRemoveFromPackage($packageId) {
-        $this->dataModel->removeFromPackage($packageId);
-
-        $this->redirect('DeliveryNote:packages');
     }
 
 }

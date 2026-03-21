@@ -38,7 +38,7 @@
                         </thead>
                         <tbody>
                             {foreach $dispatchItems as $dispatchItem}
-                                <tr class="clickable-row" data-href="{link dispatchItemDetail $dispatchItem->DispatchItemID}">
+                                <tr class="clickable-row" > {* data-href="{link dispatchItemDetail $dispatchItem->DispatchItemID}" *}
                                     <td class="text-center">{$dispatchItem->Nazev}</td>
                                     <td class="text-center font-weight-bold ">{$dispatchItem->Mnozstvi|number:2} / {$dispatchItem->PocetPalet}</td>
                                     <!-- td class="text-right text-nowrap">

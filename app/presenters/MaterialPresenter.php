@@ -39,7 +39,7 @@ class MaterialPresenter extends BasePresenter
     public function renderDefault()
     {
         // \Tracy\Debugger::barDump($this->showSession());
-        $this->template->nadpis = 'Sklad převody';
+        $this->template->nadpis = 'Sklad';
     }
 
     /* ============================= VÝDEJKA =================================== */
@@ -93,7 +93,7 @@ class MaterialPresenter extends BasePresenter
         $this->template->nadpis = "Převod do prodejny";
     }
 
-        /** !!!
+    /** !!!
      * ReadBarCode form factory.
      * načtení výrobního čísla materiálu pro převod do prodejny
      * přečte čárový kód
@@ -115,7 +115,7 @@ class MaterialPresenter extends BasePresenter
 
             $serialNumberRow = $this->dataModel->checkSerialNumberToShop($serialNumber, $idSklad);
             // kontroly na množství na skladě
-            if (!($serialNumberRow["IDVyrCis"])) {
+            if (!$serialNumberRow) {
                 // VČ neexistuje - výpis chyby
                 $this->flashMessage('Paleta ' . $values->BarCode . ' není v evidenci!', 'error');
             } else {
@@ -193,7 +193,7 @@ class MaterialPresenter extends BasePresenter
 
                 $serialNumberRow = $this->dataModel->checkSerialNumberOther($values->dispatchId, $serialNumber);
                 // kontroly na množství na skladě
-                if (!($serialNumberRow["IDVyrCis"])) {
+                if (!$serialNumberRow) {
                     // VČ neexistuje - výpis chyby
                     $this->flashMessage('Paleta ' . $values->BarCode . ' není v evidenci!', 'error');
                 } else {
@@ -207,7 +207,7 @@ class MaterialPresenter extends BasePresenter
                 // převodky ze Schenkeru a dodací listy - kontrola na dokladu TabVyrCP_EXT._exp_mnoz_potvrz
                 $serialNumberRow = $this->dataModel->checkSerialNumberPrepare($values->dispatchId, $serialNumber);
                 // kontroly na množství na skladě
-                if (!($serialNumberRow["IDVyrCis"])) {
+                if (!$serialNumberRow) {
                     // VČ není na dokladu - výpis chyby
                     $this->flashMessage('Paleta ' . $values->BarCode . ' není na dokladu!', 'error');
                 } elseif ($serialNumberRow->MnozstviPotvrz > 0) {

@@ -27,7 +27,8 @@ h2 {
 
 /* univerzální*/
 .clearer {clear: both;}
-.flash {display: none;}
+#flash {z-index: 100; display: none;}
+#backdrop {z-index: 90; display: none;}
 label {font-weight: normal; font-size: larger;}
 .checkbox-large {width: 30px; height: 30px;}
 .ui-autocomplete.ui-widget {font-size: 1.4em;}
@@ -86,8 +87,8 @@ i.far {
     font-size: 1em;
 }
 .logged {
-    float: right;
-    text-align: right;
+    float: left;
+    text-align: left;
     display: inline;
     margin: 4px;
     z-index: 400;

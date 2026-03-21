@@ -24,7 +24,7 @@ class SetDeliveryNoteFormFactory {
                 ->setRequired('Zadej číslo dodacího listu')
                 ->setHtmlAttribute('autocomplete', false);
 
-        $form->addSubmit('send', 'form.labels.select')
+        $form->addSubmit('send', 'Vyber')
                 ->setHtmlAttribute('class', 'btn btn-lg btn-secondary');
 
         return $form;

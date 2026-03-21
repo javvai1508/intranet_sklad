@@ -1,3 +1,37 @@
+// flash messages
+function openModal() {
+  document.getElementById("backdrop").style.display = "block"
+  document.getElementById("flash").style.display = "block"
+  document.getElementById("flash").className += "show"
+};
+
+function closeModal() {
+  document.getElementById("backdrop").style.display = "none"
+  document.getElementById("flash").style.display = "none"
+  document.getElementById("flash").className += document.getElementById("flash").className.replace("show", "")
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+
+  naja.initialize();
+
+  var flash = document.getElementById('flash');
+
+  if (flash) {
+    openModal();
+  };
+
+  window.onclick = function(event) {
+    if (event.target == flash) {
+      closeModal();
+    }
+  };
+
+}, false);
+
+
+
+
 /* 
  * 
  */

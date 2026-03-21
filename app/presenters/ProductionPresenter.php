@@ -9,13 +9,10 @@ use App\Models\ProductionModel,
 class ProductionPresenter extends BasePresenter
 {
 
-    /** @var ProductionModel @inject */
-    public $dataModel;
-
-    /** @var ReadBarCodeFormFactory @inject */
-    public $readBarCodeFactory;
-
-    public function __construct()
+    public function __construct(
+        private ProductionModel $dataModel,
+        private ReadBarCodeFormFactory $readBarCodeFactory,
+    )
     {
         parent::__construct();
     }
