@@ -32,15 +32,19 @@ class ProductionModel extends BaseModel {
     public function closeProduction($idVyrCis, $cisloZam) {
         // transakce
 
-        $res = -9;
             // spustit akci na přidání položky do výdejky
-            $prijemId = $this->db->query("SET NOCOUNT ON; "
+            /* 
+            * doplnit ošetření výjimek - interní hlášky
+            * zkontrolovat rychlost - realizace dokladu (zatím se nerealizuje)
+            */
+            // $res = $this->db->query("EXEC dbo.hpx_agrafa_vyr_odvedeni_vc_tablet @IDPrijem = NULL, @IDVyrCis = ?, @CisloZam = ?; ", $idVyrCis, $cisloZam)->fetch();
+
+            $res = $this->db->query("SET NOCOUNT ON; "
             . "DECLARE @IDPrijem INT; "
-            . "EXEC dbo.hpx_agrafa_vyr_odvedeni_vc_tablet @IDPrijem = @IDPrijem OUTPUT, @IDVyrCis = ?, @CisloZam = ?; "
-            . "SELECT @IDPrijem ", $idVyrCis, $cisloZam);
-            if ($res) {
-                $res = $prijemId;
-            }
+            . "DECLARE @Msg NVARCHAR(2000); "
+            . "EXEC dbo.hpx_agrafa_vyr_odvedeni_vc_tablet @IDPrijem = @IDPrijem OUTPUT, @Msg = @Msg OUTPUT, @IDVyrCis = ?, @CisloZam = ?; "
+            . "SELECT @IDPrijem AS IDPrijem, @Msg AS Msg", $idVyrCis, $cisloZam)->fetch();
+
             return $res;
 
     }

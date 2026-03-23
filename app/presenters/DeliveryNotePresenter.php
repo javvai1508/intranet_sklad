@@ -45,6 +45,7 @@ class DeliveryNotePresenter extends BasePresenter {
             $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
             $this->template->deliveryNote = $deliveryNote;
             $this->template->deliveryNoteItems = $deliveryNoteItems;
+            $this->template->nadpis = 'Dodací list: ' . $deliveryNote->ParovaciZnak;
 
             if ($this["readBarCodeForm"]) {
                 $readBarCodeDefaults = array('deliveryNoteId' => $this->deliveryNoteId);

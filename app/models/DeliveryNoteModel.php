@@ -37,38 +37,42 @@ class DeliveryNoteModel extends BaseModel {
      * @return type
      */
     public function getDeliveryNote($deliveryNoteId) {
-        return $this->db->query("SELECT "
-                        . "do.ID AS ID, "
-                        . "do.ParovaciZnak AS ParovaciZnak, "
-                        . "CONVERT(NVARCHAR(20), do.DatPovinnostiFa, 104) AS DatVystaveni, "
-                        . "CONVERT(NVARCHAR(20), ISNULL(do.Splatnost, do.DatPorizeni), 104) AS DatDodavky, "
-                        . "co.CisloOrg AS CisloOrg, "
-                        . "mu.CisloOrg AS CisloMU, "
-                        . "COALESCE(mu.CisloOrg, co.CisloOrg) AS CisloOdb,"
-                        . "CONCAT(co.Firma, ', ', co.Misto) AS Organizace, "
-                        . "CONCAT(mu.Firma, ', ', mu.Misto) AS MistoUrceni,"
-                        . "COALESCE(CONCAT(mu.Firma, ', ', mu.Misto), CONCAT(co.Firma, ', ', co.Misto)) AS Odberatel,"
-                        . "CONVERT(NVARCHAR(20), doe._exp_dat_uzavreno, 104) AS DatUzavrenoExp, "
-                        // . "0 AS StavDLExp, "
-                        . "CASE WHEN do.StavPrevodu IN (1, 2, 3, 4, 5) THEN 1 WHEN EXISTS(SELECT IDDok FROM TabDokumVazba WHERE IdentVazby = 9 AND IDTab = do.ID) THEN 1 WHEN doe._exp_dat_uzavreno IS NOT NULL THEN 1 ELSE 0 END AS StavDLExp, "
-                        . "sumy.PocetPozad AS PocetPozad, "
-                        . "CONVERT(INT, ISNULL(sumy.MnozstviPozad, 0)) AS MnozstviPozad, "
-                        . "sumy.PocetVC AS PocetVC, "
-                        . "CONVERT(INT, ISNULL(sumy.MnozstviVC, 0)) AS MnozstviVC "
-                        . "FROM TabDokladyZbozi do "
-                        . "LEFT JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "LEFT JOIN TabCisOrg co ON do.CisloOrg = co.CisloOrg "
-                        . "LEFT JOIN TabCisOrg mu ON do.MistoUrceni = mu.CisloOrg "
-                        . "LEFT JOIN (SELECT "
-                        . "po.IDDoklad, "
-                        . "COUNT(po.ID) AS PocetPozad, "
-                        . "SUM(ISNULL(po.Mnozstvi, 0)) AS MnozstviPozad, "
-                        . "COUNT(vcp.ID) AS PocetVC, "
-                        . "SUM(vcp.Mnozstvi) AS MnozstviVC "
-                        . "FROM TabPohybyZbozi po "
-                        . "LEFT JOIN TabVyrCP vcp ON po.ID = vcp.IDPolozkaDokladu "
-                        . "GROUP BY po.IDDoklad) sumy ON do.ID = sumy.IDDoklad "
-                        . "WHERE do.ID = ?", $deliveryNoteId)->fetch();
+        return $this->db->query("SELECT 
+                                    do.ID AS ID, 
+                                    do.ParovaciZnak AS ParovaciZnak, 
+                                    CONVERT(NVARCHAR(20), do.DatPovinnostiFa, 104) AS DatVystaveni, 
+                                    CONVERT(NVARCHAR(20), ISNULL(do.Splatnost, do.DatPorizeni), 104) AS DatDodavky, 
+                                    co.CisloOrg AS CisloOrg, 
+                                    mu.CisloOrg AS CisloMU, 
+                                    COALESCE(mu.CisloOrg, co.CisloOrg) AS CisloOdb,
+                                    CONCAT(co.Firma, ', ', co.Misto) AS Organizace, 
+                                    CONCAT(mu.Firma, ', ', mu.Misto) AS MistoUrceni,
+                                    COALESCE(CONCAT(mu.Firma, ', ', mu.Misto), CONCAT(co.Firma, ', ', co.Misto)) AS Odberatel,
+                                    CONVERT(NVARCHAR(20), doe._exp_dat_uzavreno, 104) AS DatUzavrenoExp, 
+                                    -- 0 AS StavDLExp, 
+                                    CASE WHEN do.StavPrevodu IN (1, 2, 3, 4, 5) THEN 1 WHEN EXISTS(SELECT IDDok FROM TabDokumVazba WHERE IdentVazby = 9 AND IDTab = do.ID) THEN 1 WHEN doe._exp_dat_uzavreno IS NOT NULL THEN 1 ELSE 0 END AS StavDLExp, 
+                                    posumy.PocetPozad AS PocetPozad, 
+                                    CONVERT(INT, ISNULL(posumy.MnozstviPozad, 0)) AS MnozstviPozad, 
+                                    vcsumy.PocetVC AS PocetVC, 
+                                    CONVERT(INT, ISNULL(vcsumy.MnozstviVC, 0)) AS MnozstviVC 
+                                FROM TabDokladyZbozi do 
+                                LEFT JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID 
+                                LEFT JOIN TabCisOrg co ON do.CisloOrg = co.CisloOrg 
+                                LEFT JOIN TabCisOrg mu ON do.MistoUrceni = mu.CisloOrg 
+                                LEFT JOIN (SELECT 
+                                                po.IDDoklad, 
+                                                COUNT(po.ID) AS PocetPozad, 
+                                                SUM(ISNULL(po.Mnozstvi, 0)) AS MnozstviPozad
+                                            FROM TabPohybyZbozi po 
+                                            GROUP BY po.IDDoklad) posumy ON do.ID = posumy.IDDoklad 
+                                LEFT JOIN (SELECT 
+                                                po.IDDoklad, 
+                                                COUNT(vcp.ID) AS PocetVC, 
+                                                SUM(vcp.Mnozstvi) AS MnozstviVC 
+                                            FROM TabPohybyZbozi po 
+                                            LEFT JOIN TabVyrCP vcp ON po.ID = vcp.IDPolozkaDokladu 
+                                            GROUP BY po.IDDoklad) vcsumy ON do.ID = vcsumy.IDDoklad 
+                                WHERE do.ID = ?", $deliveryNoteId)->fetch();
     }
 
     /**

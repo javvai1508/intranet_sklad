@@ -50,6 +50,7 @@
                             <span class="text-danger font-weight-bold">Vyfakturováno</span>
                         {/ifset}
                     {else}
+                    <a n:href="changeDeliveryNote!" class="btn btn-secondary btn-lg m-1"><i class="far fa-exchange"></i> Změnit DL</a>
                     <a n:href="closeDeliveryNote!" n:if="($deliveryNote->StavDLExp == 0)" class="btn btn-success btn-lg m-1"><i class="far fa-forklift"></i> Uzavřít</a>
                     {/if}
                 </div>

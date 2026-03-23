@@ -5,6 +5,3 @@ database:
 	dsn: 'sqlsrv:Server=10.0.0.6;Database=Helios002'
 	user: 'intranet'
 	password: 'Udshf_dfj84s*d:hfDF'
-#	dsn: 'sqlsrv:Server=localhost;Database=Inuvio002'
-#	user: 'sa'
-#	password: '23560'
