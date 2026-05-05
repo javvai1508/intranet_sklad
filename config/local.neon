@@ -2,6 +2,6 @@ parameters:
 
 
 database:
-	dsn: 'sqlsrv:Server=10.0.0.6;Database=Helios002'
+	dsn: 'sqlsrv:Server=10.0.0.6;Database=Helios001'
 	user: 'intranet'
 	password: 'Udshf_dfj84s*d:hfDF'
