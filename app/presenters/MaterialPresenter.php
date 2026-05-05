@@ -231,8 +231,10 @@ class MaterialPresenter extends BasePresenter
      */
     public function handleCloseDispatch()
     {
-        $this->dispatchId = $this->getSession('dispatch')->dispatchId;
-        $dispatchType = $this->getSession('dispatch')->dispatchType;
+        if (isset($this->getSession('dispatch')->dispatchId)) {
+            $this->dispatchId = $this->getSession('dispatch')->dispatchId;
+            $dispatchType = $this->getSession('dispatch')->dispatchType;
+        }
         if ($dispatchType == 'toSchenker') {
             $res = $this->dataModel->closeDispatch($this->dispatchId);
         } else {
