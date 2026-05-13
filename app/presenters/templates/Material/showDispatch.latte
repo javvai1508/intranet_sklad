@@ -38,9 +38,10 @@
                         </thead>
                         <tbody>
                             {foreach $dispatchItems as $dispatchItem}
-                                <tr class="clickable-row" > {* data-href="{link dispatchItemDetail $dispatchItem->DispatchItemID}" *}
+                                <tr class="position-relative clickable-row" > {*data-href="{link dispatchItemDetail $dispatchItem->DispatchItemID}" >*}
                                     <td class="text-center">{$dispatchItem->Nazev}</td>
                                     <td class="text-center font-weight-bold ">{$dispatchItem->Mnozstvi|number:2} / {$dispatchItem->PocetPalet}</td>
+                                    <td><a n:href="dispatchItemDetail $dispatchItem->DispatchItemID" class="stretched-link"></a></td>
                                     <!-- td class="text-right text-nowrap">
                                         <a n:href="dispatchItemDetail $dispatchItem->DispatchItemID" class="btn btn-lg btn-primary mr-2"><i class="far fa-info"></i></a>
                                         <a n:href="removeDispatchItem! $dispatchItem->DispatchItemID" n:if="($dispatch->StavDispExp == 0)" class="btn btn-lg btn-danger mr-2 ajax" data-nette-confirm="modal" data-nette-confirm-title="Zrušení výdeje položky" data-nette-confirm-text="Opravu chcete zrušit výdej u vybrané položky?" data-nette-confirm-ok-class="btn-danger" data-nette-confirm-ok-text="Ano" data-nette-confirm-cancel-class="btn-secondary" data-nette-confirm-cancel-text="Ne"><i class="far fa-trash-alt"></i></a>

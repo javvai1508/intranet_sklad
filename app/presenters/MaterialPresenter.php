@@ -226,6 +226,52 @@ class MaterialPresenter extends BasePresenter
         return $form;
     }
 
+    /**
+     * zobrazení detailu položky výdejky
+     * @param type $itemId
+     */
+    public function renderDispatchItemDetail($itemId)
+    {
+        $this->dispatchId = $this->getSession('dispatch')->dispatchId;
+        $dispatch = $this->dataModel->getDispatch($this->dispatchId);
+        $dispatchItem = $this->dataModel->getDispatchItem($itemId);
+        $dispatchType = $this->getSession('dispatch')->dispatchType;
+
+        if (!$dispatchItem) {
+            $this->redirect('Material:showDispatch');
+        }
+        $dispatchItemSNs = $this->dataModel->getDispatchItemSN($itemId);
+
+        // kontrola, kdy to můžu udělat 
+        $this->template->dispatchNr = $dispatch->ParovaciZnak;
+        $this->template->dispatch = $dispatch;
+        $this->template->dispatchItem = $dispatchItem;
+        $this->template->dispatchItemSNs = $dispatchItemSNs;
+        $this->template->dispatchType = $dispatchType;
+
+        $this->template->nadpis = 'Převodka: ' . $dispatch->ParovaciZnak;
+        
+        if ($this["readBarCodeForm"]) {
+            $readBarCodeDefaults = array('dispatchId' => $this->dispatchId);
+            $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
+        }
+
+        \Tracy\Debugger::barDump($dispatchItem);
+    }
+
+    public function handleRemoveDispatchItemSN($itemId, $itemSNId)
+    {
+        $dispatchType = $this->getSession('dispatch')->dispatchType;
+        if ($dispatchType == 'toSchenker') {
+            $this->dataModel->removeDispatchItemSN($itemSNId);
+        } else {
+            $this->dataModel->removeDispatchItemSNPrepare($itemSNId);
+        }
+
+        \Tracy\Debugger::barDump($itemId);
+        $this->redirect('Material:dispatchItemDetail', $itemId);
+    }
+
     /** !!!
      * uzavření výdejky
      */

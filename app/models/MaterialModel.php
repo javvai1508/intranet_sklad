@@ -102,11 +102,13 @@ class MaterialModel extends BaseModel {
                         . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID "
                         . "LEFT JOIN TabPohybyZbozi vo ON pr.IDOldPolozka = vo.ID "
                         . "LEFT JOIN TabDokladyZbozi vod ON vod.ID = vo.IDDoklad "
-                        . "/*LEFT JOIN (SELECT po.ID AS IDPohyb, COUNT(vcp.ID) AS cnt "
+                        . "WHERE pr.ID = ?", $itemId)->fetch();
+
+                        /*. "LEFT JOIN (SELECT po.ID AS IDPohyb, COUNT(vcp.ID) AS cnt "
                         . "FROM TabVyrCP vcp "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
-                        . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID */"
-                        . "WHERE pr.ID = ?", $itemId)->fetch();
+                        . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID "*/
+
     }
 
     /**
@@ -309,7 +311,7 @@ $sth->execute();
                             . "IDPolozkaDokladu AS ItemId, "
                             . "Mnozstvi AS MnozstviSN "
                             . "FROM TabVyrCP "
-                            . "WHERE ID = ?", $itemSNId)->fetchField();
+                            . "WHERE ID = ?", $itemSNId)->fetch();
 
             if ($itemSNRow) {
                 $res = $this->db->query("UPDATE TabPohybyZbozi "
