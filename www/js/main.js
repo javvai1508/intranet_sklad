@@ -13,11 +13,11 @@ function closeModal() {
 
 document.addEventListener('DOMContentLoaded', function() {
 
-  naja.initialize();
+    naja.initialize();
+    
+    var flash = document.getElementById('flash');
 
-  var flash = document.getElementById('flash');
-
-  if (flash) {
+/*  if (flash) {
     openModal();
   };
 
@@ -25,11 +25,41 @@ document.addEventListener('DOMContentLoaded', function() {
     if (event.target == flash) {
       closeModal();
     }
-  };
+  };*/
+
+    const barcodeInput = document.getElementById('frm-readBarCodeForm-BarCode');
+
+    function focusBarcodeInput() {
+        if (!barcodeInput) {
+            return;
+        }
+
+        setTimeout(function () {
+            barcodeInput.focus();
+        }, 100);
+    }
+
+    // Fokus po načtení stránky
+    focusBarcodeInput();
+
+    // Fokus po zavření Bootstrap alertu
+    document.querySelectorAll('.flash-modal').forEach(function (modalEl) {
+        modalEl.addEventListener('hide.bs.modal', function () {
+            if (document.activeElement && modalEl.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', function () {
+            focusBarcodeInput();
+        });
+
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    });
+
 
 }, false);
-
-
 
 
 /* 

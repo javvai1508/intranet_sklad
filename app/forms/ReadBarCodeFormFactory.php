@@ -22,11 +22,13 @@ class ReadBarCodeFormFactory {
         $form->addHidden('receiptId');
         $form->addHidden('itemId');
         $form->addText('BarCode')
-                ->setAttribute('placeholder', 'Čárový kód')
-                ->setAttribute('class', 'form-control form-control-sm')
-                ->setType('text')
+                ->setHtmlAttribute('placeholder', 'Čárový kód')
+                ->setHtmlAttribute('class', 'form-control form-control-sm')
+                ->setHtmlType('text')
                 ->setRequired('Zadej kód výrobku')
-                ->setAttribute('autocomplete', false);
+                ->setHtmlAttribute('inputmode', 'none')
+                ->setHtmlAttribute('autofocus', true)
+                ->setHtmlAttribute('autocomplete', false);
 
         /*
         $form->addCheckbox('AddOne', 'Po jednom kusu?')
