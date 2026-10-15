@@ -1,4 +1,4 @@
-/config/config.local.neon
+/config/local.neon
 /log/*
 /temp/*
 /vendor/
