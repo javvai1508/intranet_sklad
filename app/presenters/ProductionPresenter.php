@@ -47,7 +47,7 @@ class ProductionPresenter extends BasePresenter
              * odvedení procedurou 
              */
             $barCodePref = substr($values->BarCode, 0, 2);
-            if ($barCodePref != '00') {
+            if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
                 $this->flashMessage('Není číslo palety!');
                 $this->redirect('Production:');
 
@@ -60,8 +60,8 @@ class ProductionPresenter extends BasePresenter
                 if ($sn->Odvedeno + $sn->OdvedenoNereal >= $sn->Zadane) {
                     $this->flashMessage('Už bylo jednou odvedeno!');
                 } else {
-                    $idPrijem = $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']);
-                    // $this->flashMessage($idPrijem);
+                    $idPrijem = $this->warehouseAction(fn() => $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']));
+                    if ($idPrijem) { $this->flashMessage('Paleta byla odvedena na sklad.', 'success'); }
                 }
 
             } else {

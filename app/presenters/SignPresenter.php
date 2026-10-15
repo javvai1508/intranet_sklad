@@ -18,11 +18,7 @@ final class SignPresenter extends BasePresenter
     public function renderIn()
     {
         if ($this->user->isLoggedIn()) {
-            if ($this->user->isInRole('V')) {
-                $this->redirect('AdminAttReports:default');
-            } else {
-                $this->redirect('Homepage:default');
-            }
+            $this->redirect('Homepage:default');
         }
     }
 

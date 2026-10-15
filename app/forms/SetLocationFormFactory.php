@@ -16,6 +16,7 @@ class SetLocationFormFactory {
     public function create($locationArr) {
 
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         
         $form->addHidden('deliveryNoteId');
         $form->addSelect('UmisteniKod', 'Umístění')

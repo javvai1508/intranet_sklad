@@ -17,8 +17,8 @@ class ProductionModel extends BaseModel {
                         . "vcp.IDPrikaz AS IDPrikaz,"
                         . "vcp.Mnozstvi AS Zadane, "
                         . "CONVERT(NUMERIC(19,6), (SELECT ISNULL(SUM(CP.Mnozstvi * PZ.PrepMnozstvi),0.0) FROM TabPohybyZbozi PZ INNER JOIN TabVyrCP CP ON (CP.IDPolozkaDokladu = PZ.ID) INNER JOIN TabVyrCS CS ON (CS.ID = CP.IDVyrCis AND CS.Nazev1 = vcp.VyrCislo) WHERE PZ.TypVyrobnihoDokladu=0 AND PZ.IDPrikaz = vcp.IDPrikaz AND PZ.DruhPohybuZbo=0 AND PZ.SkutecneDatReal IS NULL)) AS OdvedenoNereal, "
-                        . "vcp.Odvedeno AS Odvedeno "
-                        . "FROM TabVyrCisPrikaz vcp "
+                        . "ISNULL(vcp.Odvedeno, 0) AS Odvedeno "
+                        . "FROM TabVyrCisPrikaz vcp WITH (UPDLOCK, HOLDLOCK) "
                         . "WHERE vcp.VyrCislo = ?", $barCode)->fetch();
     }
 
@@ -29,8 +29,7 @@ class ProductionModel extends BaseModel {
      * @param type $cisloZam
      * @return type
      */
-    public function closeProduction($idVyrCis, $cisloZam) {
-        // transakce
+    private function closeProductionInternal($idVyrCis, $cisloZam) {
 
             // spustit akci na přidání položky do výdejky
             /* 
@@ -49,4 +48,18 @@ class ProductionModel extends BaseModel {
 
     }
 
+
+    public function closeProduction($idVyrCis, $cisloZam)
+    {
+        return $this->warehouseOperation(function () use ($idVyrCis, $cisloZam) {
+            $row = $this->db->query('SELECT VyrCislo FROM TabVyrCisPrikaz WHERE ID = ?', $idVyrCis)->fetch();
+            $state = $row ? $this->checkProductionSN($row->VyrCislo) : null;
+            if (!$state || $state->IDVyrCis != $idVyrCis || $state->Odvedeno + $state->OdvedenoNereal >= $state->Zadane) {
+                throw new \RuntimeException('Paleta neexistuje nebo již byla odvedena.');
+            }
+            $result = $this->closeProductionInternal($idVyrCis, $cisloZam);
+            if (!$result || !$result->IDPrijem) { throw new \RuntimeException($result->Msg ?? 'Výrobu se nepodařilo odvést.'); }
+            return $result;
+        });
+    }
 }

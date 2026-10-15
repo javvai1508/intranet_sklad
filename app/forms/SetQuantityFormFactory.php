@@ -16,6 +16,7 @@ class SetQuantityFormFactory {
     public function create() {
 
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         
         $form->addHidden('deliveryNoteId');
         $form->addHidden('dispatchId');

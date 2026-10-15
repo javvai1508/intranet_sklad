@@ -66,8 +66,8 @@ class MaterialPresenter extends BasePresenter
                 $this->redirect("Material:showDispatch");
             }
         }
-        $res = $this->dataModel->openNewDispatch('toSchenker');
-        if ($res["IDDoklad"]) {
+        $res = $this->warehouseAction(fn() => $this->dataModel->openNewDispatch('toSchenker'));
+        if ($res && !empty($res["IDDoklad"])) {
             $dispatchId = $res["IDDoklad"];
 
             if ($dispatchId) {
@@ -82,6 +82,8 @@ class MaterialPresenter extends BasePresenter
                 $this->redirect("Material:default");
             }
         }         
+        $this->flashMessage('Výdejku se nepodařilo založit.', 'danger');
+        $this->redirect('Material:default');
     }
 
     /** !!!
@@ -105,7 +107,7 @@ class MaterialPresenter extends BasePresenter
         $form = $this->readBarCodeFactory->create();
         $form->onSuccess[] = function (Form $form, $values) {
             $barCodePref = substr($values->BarCode, 0, 2);
-            if ($barCodePref != '00') {
+            if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
                 $this->flashMessage('Není číslo palety!', 'error');
                 $this->redirect('Material:newTransferToShop');
 
@@ -122,7 +124,7 @@ class MaterialPresenter extends BasePresenter
                 if ($serialNumberRow->Mnozstvi <= 0 || $serialNumberRow->MnozstviPoPrijmuAVydeji <= 0) {
                     $this->flashMessage('Paleta ' . $values->BarCode . ' není na skladu!', 'error');
                 } else {
-                    $res = $this->dataModel->moveSerialNumberToShop($serialNumber);
+                    $res = $this->warehouseAction(fn() => $this->dataModel->moveSerialNumberToShop($serialNumber));
                     if ($res) {
                         $this->flashMessage('Paleta ' . $serialNumber . ' byla převedena do prodejny!', 'info');
                     } else {
@@ -145,10 +147,16 @@ class MaterialPresenter extends BasePresenter
      */
     public function renderShowDispatch()
     {
+        if (!$this->getSession('dispatch')->dispatchId) { $this->redirect('Material:default'); }
         if (isset($this->getSession('dispatch')->dispatchId)) {
             $this->dispatchId = $this->getSession('dispatch')->dispatchId;
             $dispatchType = $this->getSession('dispatch')->dispatchType;
             $dispatch = $this->dataModel->getDispatch($this->dispatchId);
+            if (!$dispatch) {
+                $this->getSession('dispatch')->remove();
+                $this->flashMessage('Vybraný doklad neexistuje.', 'danger');
+                $this->redirect('Material:default');
+            }
             $dispatchItems = $this->dataModel->getDispatchItems($this->dispatchId);
             // spočítat množství požadované v hlavičce podle součtu z řádků 
 
@@ -179,10 +187,14 @@ class MaterialPresenter extends BasePresenter
     {
         $form = $this->readBarCodeFactory->create();
         $form->onSuccess[] = function (Form $form, $values) {
+            if ((string) $values->dispatchId !== (string) $this->getSession('dispatch')->dispatchId) {
+                $this->flashMessage('Výběr dokladu se změnil. Obnovte stránku a načtěte paletu znovu.', 'danger');
+                $this->redirect('this');
+            }
             $dispatchType = $this->getSession('dispatch')->dispatchType;
 
             $barCodePref = substr($values->BarCode, 0, 2);
-            if ($barCodePref != '00') {
+            if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
                 $this->flashMessage('Není číslo palety!', 'error');
                 $this->redirect('Material:showDispatch');
 
@@ -191,7 +203,7 @@ class MaterialPresenter extends BasePresenter
 
             if ($dispatchType == 'toSchenker') {
 
-                $serialNumberRow = $this->dataModel->checkSerialNumberOther($values->dispatchId, $serialNumber);
+                $serialNumberRow = $this->dataModel->checkSerialNumberOther($this->getSession('dispatch')->dispatchId, $serialNumber);
                 // kontroly na množství na skladě
                 if (!$serialNumberRow) {
                     // VČ neexistuje - výpis chyby
@@ -200,12 +212,12 @@ class MaterialPresenter extends BasePresenter
                     if ($serialNumberRow->Mnozstvi <= 0 || $serialNumberRow->MnozstviPoPrijmuAVydeji <= 0) {
                         $this->flashMessage('Paleta ' . $values->BarCode . ' není na skladu!', 'error');
                     } else {
-                        $res = $this->dataModel->updateDispatchItemOther($serialNumber, $values->dispatchId);
+                        $res = $this->warehouseAction(fn() => $this->dataModel->updateDispatchItemOther($serialNumber, $this->getSession('dispatch')->dispatchId));
                     }
                 }
             } else {
                 // převodky ze Schenkeru a dodací listy - kontrola na dokladu TabVyrCP_EXT._exp_mnoz_potvrz
-                $serialNumberRow = $this->dataModel->checkSerialNumberPrepare($values->dispatchId, $serialNumber);
+                $serialNumberRow = $this->dataModel->checkSerialNumberPrepare($this->getSession('dispatch')->dispatchId, $serialNumber);
                 // kontroly na množství na skladě
                 if (!$serialNumberRow) {
                     // VČ není na dokladu - výpis chyby
@@ -213,7 +225,7 @@ class MaterialPresenter extends BasePresenter
                 } elseif ($serialNumberRow->MnozstviPotvrz > 0) {
                     $this->flashMessage('Paleta ' . $values->BarCode . ' je už potvrzená!', 'error');
                 } else {
-                    $res = $this->dataModel->updateDispatchItemPrepare($serialNumber, $values->dispatchId);
+                    $res = $this->warehouseAction(fn() => $this->dataModel->updateDispatchItemPrepare($serialNumber, $this->getSession('dispatch')->dispatchId));
                 }
             }
 
@@ -234,6 +246,12 @@ class MaterialPresenter extends BasePresenter
     {
         $this->dispatchId = $this->getSession('dispatch')->dispatchId;
         $dispatch = $this->dataModel->getDispatch($this->dispatchId);
+            if (!$dispatch) {
+                $this->getSession('dispatch')->remove();
+                $this->flashMessage('Vybraný doklad neexistuje.', 'danger');
+                $this->redirect('Material:default');
+            }
+        if (!$this->warehouseAction(function () use ($itemId) { $this->dataModel->assertDocument($this->getSession('dispatch')->dispatchId, $itemId, null, false); return true; })) { $this->redirect('default'); }
         $dispatchItem = $this->dataModel->getDispatchItem($itemId);
         $dispatchType = $this->getSession('dispatch')->dispatchType;
 
@@ -263,9 +281,9 @@ class MaterialPresenter extends BasePresenter
     {
         $dispatchType = $this->getSession('dispatch')->dispatchType;
         if ($dispatchType == 'toSchenker') {
-            $this->dataModel->removeDispatchItemSN($itemSNId);
+            $this->warehouseAction(fn() => $this->dataModel->removeDispatchItemSN($itemSNId, $this->getSession('dispatch')->dispatchId, $itemId));
         } else {
-            $this->dataModel->removeDispatchItemSNPrepare($itemSNId);
+            $this->warehouseAction(fn() => $this->dataModel->removeDispatchItemSNPrepare($itemSNId, $this->getSession('dispatch')->dispatchId, $itemId));
         }
 
         \Tracy\Debugger::barDump($itemId);
@@ -277,14 +295,12 @@ class MaterialPresenter extends BasePresenter
      */
     public function handleCloseDispatch()
     {
-        if (isset($this->getSession('dispatch')->dispatchId)) {
-            $this->dispatchId = $this->getSession('dispatch')->dispatchId;
-            $dispatchType = $this->getSession('dispatch')->dispatchType;
-        }
+        $this->dispatchId = $this->getSession('dispatch')->dispatchId;
+        $dispatchType = $this->getSession('dispatch')->dispatchType;
         if ($dispatchType == 'toSchenker') {
-            $res = $this->dataModel->closeDispatch($this->dispatchId);
+            $res = $this->warehouseAction(fn() => $this->dataModel->closeDispatch($this->dispatchId));
         } else {
-            $res = $this->dataModel->closeDispatchPrepare($this->dispatchId);
+            $res = $this->warehouseAction(fn() => $this->dataModel->closeDispatchPrepare($this->dispatchId));
         }
         
         if (!$res) {
@@ -292,10 +308,24 @@ class MaterialPresenter extends BasePresenter
         } else {
             // generovat PDF štítky podle počtu kusů - pouze u příkazů s VČ
             $dispatch = $this->dataModel->getDispatch($this->dispatchId);
+            if (!$dispatch) {
+                $this->getSession('dispatch')->remove();
+                $this->flashMessage('Vybraný doklad neexistuje.', 'danger');
+                $this->redirect('Material:default');
+            }
 
             $this->getSession('dispatch')->remove();
             $this->redirect('Material:default');
         }
     }
 
+
+    public function handleRemoveDispatchItem($itemId)
+    {
+        $id = $this->getSession('dispatch')->dispatchId;
+        $this->warehouseAction(fn() => $this->getSession('dispatch')->dispatchType === 'toSchenker'
+            ? $this->dataModel->removeDispatchItem($itemId, $id)
+            : $this->dataModel->removeDispatchItemPrepare($itemId, $id));
+        $this->redirect('Material:showDispatch');
+    }
 }

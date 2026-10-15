@@ -39,6 +39,9 @@ class UserModel extends BaseModel implements Nette\Security\Authenticator {
             array_push($roles, $auth->sklad);
         }
         
+        if (!$roles) {
+            throw new Nette\Security\AuthenticationException('Zaměstnanec nemá potřebná oprávnění.', self::NOT_APPROVED);
+        }
         $data = array('fullname' => $auth->fullname, 'vychozi' => $auth->vychozi, 'cislozam' => $auth->cislozam);
         return new SimpleIdentity(
             $auth->id, 

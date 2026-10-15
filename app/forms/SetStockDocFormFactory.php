@@ -16,6 +16,7 @@ class SetStockDocFormFactory {
     public function create() {
 
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         
         $form->addText('ParovaciZnak')
                 ->setHtmlAttribute('placeholder', 'Číslo dokladu')

@@ -1,3 +1,24 @@
+document.addEventListener('click', function (event) {
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    const url = new URL(link.href, window.location.href);
+    if (url.origin !== location.origin || !url.searchParams.has('do')) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const question = link.dataset.netteConfirmText;
+    if (question && !window.confirm(question)) return;
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = url.href;
+    const token = document.createElement('input');
+    token.type = 'hidden';
+    token.name = '_requestToken';
+    token.value = document.querySelector('meta[name="request-token"]').content;
+    form.appendChild(token);
+    document.body.appendChild(form);
+    form.submit();
+}, true);
+
 // flash messages
 function openModal() {
   document.getElementById("backdrop").style.display = "block"
@@ -27,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   };*/
 
-    const barcodeInput = document.getElementById('frm-readBarCodeForm-BarCode');
+    const barcodeInput = document.querySelector('input[id$="-BarCode"]');
 
     function focusBarcodeInput() {
         if (!barcodeInput) {

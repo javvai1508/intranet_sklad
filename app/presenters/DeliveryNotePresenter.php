@@ -22,6 +22,8 @@ class DeliveryNotePresenter extends BasePresenter {
 
     /** @var DeliveryNoteId */
     private $deliveryNoteId;
+    private $packageNr;
+    private $packageOpen;
 
     public function __construct() {
         parent::__construct();
@@ -30,7 +32,7 @@ class DeliveryNotePresenter extends BasePresenter {
     public function startup() {
         parent::startup();
 
-        if (!$this->user->isInRole("sklad")) {
+        if (!$this->user->isInRole("sklad") && !$this->user->isInRole("expedice")) {
             $this->redirect("Homepage:");
         }
     }
@@ -40,6 +42,11 @@ class DeliveryNotePresenter extends BasePresenter {
             $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
 
             $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
+            if (!$deliveryNote) {
+                $this->getSession('deliveryNote')->remove();
+                $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
+                $this->redirect('DeliveryNote:default');
+            }
             $deliveryNoteItems = $this->dataModel->getDeliveryNoteItems($this->deliveryNoteId);
 
             $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
@@ -97,7 +104,7 @@ class DeliveryNotePresenter extends BasePresenter {
     private function processBarCode($deliveryNoteId, $serialNumber) {
         // kontrola existence VČ + kontrola existence v DL
         $barCodePref = substr($serialNumber, 0, 2);
-        if ($barCodePref != '00') {
+        if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $serialNumber)) {
             $this->flashMessage('Není číslo palety!', 'error');
             $this->redirect('DeliveryNote:default');
 
@@ -110,7 +117,7 @@ class DeliveryNotePresenter extends BasePresenter {
             $serialNumberRow = $this->dataModel->checkSerialNumber($deliveryNoteId, $serialNumber);
 
             // kontroly na množství na skladě
-            if (!($serialNumberRow["IDVyrCis"])) {
+            if (!$serialNumberRow || !$serialNumberRow->IDVyrCis) {
                 // VČ neexistuje - výpis chyby
                 $this->flashMessage('Paleta ' . $serialNumber . ' není v evidenci!', 'danger');
             } else {
@@ -124,7 +131,7 @@ class DeliveryNotePresenter extends BasePresenter {
                 } elseif ($serialNumberRow->Mnozstvi <= 0 || $serialNumberRow->MnozstviPoPrijmuAVydeji <= 0) {
                     $this->flashMessage('Paleta ' . $serialNumber . ' není na skladu!', 'danger');
                 } else {
-                    $this->dataModel->updateDeliveryNoteItemFromStock($deliveryNoteId, $serialNumberRow->IDPohyb, $serialNumberRow->IDVyrCis, $serialNumber, $serialNumberRow->MnozstviPoPrijmuAVydeji);
+                    $this->warehouseAction(fn() => $this->dataModel->updateDeliveryNoteItemFromStock($deliveryNoteId, $serialNumberRow->IDPohyb, $serialNumberRow->IDVyrCis, $serialNumber, $serialNumberRow->MnozstviPoPrijmuAVydeji));
                 }
             }
 
@@ -152,8 +159,12 @@ class DeliveryNotePresenter extends BasePresenter {
          * 
          */
         $form->onSuccess[] = function (Form $form, $values) {
+            if ((string) $values->deliveryNoteId !== (string) $this->getSession('deliveryNote')->deliveryNoteId) {
+                $this->flashMessage('Výběr dokladu se změnil. Obnovte stránku a načtěte paletu znovu.', 'danger');
+                $this->redirect('this');
+            }
 // kontrola existence VČ + kontrola existence v DL
-            $this->processBarCode($values->deliveryNoteId, $values->BarCode);
+            $this->processBarCode($this->getSession('deliveryNote')->deliveryNoteId, $values->BarCode);
         };
 
         return $form;
@@ -191,7 +202,7 @@ class DeliveryNotePresenter extends BasePresenter {
         // \Tracy\Debugger::barDump($deliveryNote);
         // $this->redirect('DeliveryNote:default');
 */
-        $res = $this->dataModel->closeDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
+        $res = $this->warehouseAction(fn() => $this->dataModel->closeDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId));
         if (!$res) {
             $this->flashMessage('Dodací list se nepodařilo uzavřít!', 'danger');
         } else {
@@ -211,7 +222,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * @param type $itemId
      */
     public function handleRemoveDeliveryNoteItem($itemId) {
-        $this->dataModel->removeDeliveryNoteItem($itemId);
+        $this->warehouseAction(fn() => $this->dataModel->removeDeliveryNoteItem($itemId, $this->getSession('deliveryNote')->deliveryNoteId));
 
         $this->redirect('DeliveryNote:default');
     }
@@ -223,8 +234,14 @@ class DeliveryNotePresenter extends BasePresenter {
     public function renderItemDetail($itemId) {
         $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
         $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
+            if (!$deliveryNote) {
+                $this->getSession('deliveryNote')->remove();
+                $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
+                $this->redirect('DeliveryNote:default');
+            }
 // kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
 
+        if (!$this->warehouseAction(function () use ($itemId) { $this->dataModel->assertDocument($this->getSession('deliveryNote')->deliveryNoteId, $itemId, null, false); return true; })) { $this->redirect('default'); }
         $deliveryNoteItem = $this->dataModel->getDeliveryNoteItem($itemId);
         $deliveryNoteItemSN = $this->dataModel->getDeliveryNoteItemSN($itemId);
         $this->packageNr = $this->getSession('package')->number;
@@ -251,7 +268,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * @param type $itemSNId
      */
     public function handleRemoveDeliveryNoteItemSN($itemId, $itemSNId) {
-        $this->dataModel->removeDeliveryNoteItemSN($itemSNId);
+        $this->warehouseAction(fn() => $this->dataModel->removeDeliveryNoteItemSN($itemSNId, $this->getSession('deliveryNote')->deliveryNoteId, $itemId));
 
         $this->redirect('DeliveryNote:itemDetail', $itemId);
     }
@@ -263,8 +280,12 @@ class DeliveryNotePresenter extends BasePresenter {
     public function renderPackages() {
         $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
         $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
+            if (!$deliveryNote) {
+                $this->getSession('deliveryNote')->remove();
+                $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
+                $this->redirect('DeliveryNote:default');
+            }
 // kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-// $deliveryNoteItem = $this->dataModel->getDeliveryNoteItem($itemId);
         $deliveryNotePackages = $this->dataModel->getDeliveryNotePackages($this->deliveryNoteId);
         $this->packageNr = $this->getSession('package')->number;
         $this->packageOpen = $this->getSession('package')->open;
@@ -284,4 +305,11 @@ class DeliveryNotePresenter extends BasePresenter {
         \Tracy\Debugger::barDump($deliveryNotePackages);
     }
 
+
+    public function handleRemoveFromPackage($packageId)
+    {
+        $this->warehouseAction(fn() => $this->dataModel->removeFromPackage($packageId,
+            $this->getSession('deliveryNote')->deliveryNoteId));
+        $this->redirect('DeliveryNote:packages');
+    }
 }

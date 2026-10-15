@@ -16,6 +16,7 @@ class SetDeliveryNoteFormFactory {
     public function create() {
 
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         
         $form->addText('ParovaciZnak', 'Číslo dodacího listu')
                 ->setHtmlAttribute('placeholder', 'Číslo dodacího listu')

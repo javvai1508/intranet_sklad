@@ -20,6 +20,7 @@ class SignFormFactory
     public function create(): Form
     {
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         $form->addText('username', 'Jméno')
                 ->setRequired('Zadejte jméno')
                 ->setHtmlAttribute('class', 'form-control')
