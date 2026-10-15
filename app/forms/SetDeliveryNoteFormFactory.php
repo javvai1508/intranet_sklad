@@ -20,7 +20,7 @@ class SetDeliveryNoteFormFactory {
         $form->addText('ParovaciZnak', 'Číslo dodacího listu')
                 ->setHtmlAttribute('placeholder', 'Číslo dodacího listu')
                 ->setHtmlAttribute('class', 'form-control form-control-lg')
-                ->setHtmlType('number')
+                ->setHtmlType('text')
                 ->setRequired('Zadej číslo dodacího listu')
                 ->setHtmlAttribute('autocomplete', false);
 
