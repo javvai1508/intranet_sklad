@@ -28,7 +28,7 @@ class ProductionPresenter extends BasePresenter
 
     public function renderDefault()
     {
-        // \Tracy\Debugger::barDump($this->showSession());
+
         $this->template->nadpis = 'Odvádění z výroby';
     }
 
@@ -68,7 +68,7 @@ class ProductionPresenter extends BasePresenter
                 $this->flashMessage('Chybné číslo palety!');
             }
             $this->redirect('Production:');
-            \Tracy\Debugger::barDump($values);
+
         };
 
         return $form;

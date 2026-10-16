@@ -3,7 +3,6 @@
 namespace App\Presenters;
 
 use App\Models\MaterialModel,
-    App\Forms\SetStockDocFormFactory,
     App\Forms\ReadBarCodeFormFactory,
     Nette\Application\UI\Form;
 
@@ -13,19 +12,11 @@ class MaterialPresenter extends BasePresenter
     /** @var MaterialModel @inject */
     public $dataModel;
 
-    /** @var SetStockDocFormFactory @inject */
-    public $setStockDocFactory;
-
     /** @var ReadBarCodeFormFactory @inject */
     public $readBarCodeFactory;
 
     /** @var DispatchId */
     private $dispatchId;
-
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     public function startup()
     {
@@ -38,11 +29,9 @@ class MaterialPresenter extends BasePresenter
 
     public function renderDefault()
     {
-        // \Tracy\Debugger::barDump($this->showSession());
+
         $this->template->nadpis = 'Sklad';
     }
-
-    /* ============================= VÝDEJKA =================================== */
 
     /** !!!
      * nová výdejka - převod do Schenkeru
@@ -53,7 +42,7 @@ class MaterialPresenter extends BasePresenter
         $dispatchsOpen = $this->dataModel->checkDispatchOpen('toSchenker');
         if ($dispatchsOpen) {
             if (count($dispatchsOpen) > 1) {
-                \Tracy\Debugger::barDump($dispatchsOpen);
+
                 $this->flashMessage("Otevřeno více výdejek, nelze pokračovat!");
                 $this->redirect("Material:default");
             } elseif (count($dispatchsOpen) == 1) {
@@ -132,10 +121,7 @@ class MaterialPresenter extends BasePresenter
                     }
                 }
             }
-/*
-            //\Tracy\Debugger::barDump($serialNumberRow);
-            // $this->flashMessage($values->BarCode);
-*/
+
             $this->redirect('Material:newTransferToShop');
         };
 
@@ -171,9 +157,9 @@ class MaterialPresenter extends BasePresenter
             }
 
             $this->template->nadpis = 'Převodka: ' . $dispatch->ParovaciZnak;
-            \Tracy\Debugger::barDump($dispatch);
+
         }
-        \Tracy\Debugger::barDump($this->getSession('dispatch')->dispatchId);
+
     }
 
     /** !!!
@@ -229,9 +215,6 @@ class MaterialPresenter extends BasePresenter
                 }
             }
 
-            //\Tracy\Debugger::barDump($serialNumberRow);
-            // $this->flashMessage($values->BarCode);
-
             $this->redirect('Material:showDispatch');
         };
 
@@ -274,7 +257,6 @@ class MaterialPresenter extends BasePresenter
             $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
         }
 
-        \Tracy\Debugger::barDump($dispatchItem);
     }
 
     public function handleRemoveDispatchItemSN($itemId, $itemSNId)
@@ -286,7 +268,6 @@ class MaterialPresenter extends BasePresenter
             $this->warehouseAction(fn() => $this->dataModel->removeDispatchItemSNPrepare($itemSNId, $this->getSession('dispatch')->dispatchId, $itemId));
         }
 
-        \Tracy\Debugger::barDump($itemId);
         $this->redirect('Material:dispatchItemDetail', $itemId);
     }
 
@@ -318,7 +299,6 @@ class MaterialPresenter extends BasePresenter
             $this->redirect('Material:default');
         }
     }
-
 
     public function handleRemoveDispatchItem($itemId)
     {

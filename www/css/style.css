@@ -27,11 +27,10 @@ h2 {
 
 /* univerzální*/
 .clearer {clear: both;}
-#flash {z-index: 100; display: none;}
-#backdrop {z-index: 90; display: none;}
+
 label {font-weight: normal; font-size: larger;}
 .checkbox-large {width: 30px; height: 30px;}
-.ui-autocomplete.ui-widget {font-size: 1.4em;}
+
 th {text-align: center;}
 a {color: #8cbc46;}
 
@@ -180,15 +179,7 @@ table {
 .delivery-note-item-sn table {
     font-size: 100%;
 }
-.quantity-span {
-    display: inline-block;
-    padding: 5px 0;
-    width: 100%;
-    /*background-color: #ccffff;*/
-}
-.edit-quantity-form {
-    display: none;
-}
+
 .no-enter {
     
 }

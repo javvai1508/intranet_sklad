@@ -7,7 +7,7 @@ Přihlášení číslem zaměstnance zůstává zachované. Účet musí mít al
 - Mazání, skenování a uzavírání kontroluje existenci a otevřený stav dokladu. Detail a mazání ověřují příslušnost položky a palety.
 - Formuláře nepoužívají klientem zaslané ID jako autoritu; kontrolují shodu se zvoleným dokladem v session.
 - Aktivní zápisové operace mají transakci a společný databázový `sp_getapplock` s čekáním nejvýše 10 sekund. Kontroly před zápisem se opakují uvnitř transakce. Zámek koordinuje tuto aplikaci; jiné klienty automaticky nekoordinuje.
-- Doplněny obsluhy odebrání celé položky převodky a odebrání z balíku. U přípravy se ruší potvrzení, nikoliv plánované množství.
+- Doplněny obsluhy odebrání celé položky převodky. U přípravy se ruší potvrzení, nikoliv plánované množství.
 - Uzavření se ověřuje načtením stavu dokladu, odvedení výroby podle výstupního ID příjemky. Neúspěch vrátí transakci zpět a zobrazí chybu.
 - Změnové signály vyžadují POST a token session, formuláře mají ochranu Nette. JavaScript zajistí odeslání odkazu přes POST i potvrzení mazání.
 - Vypnut veřejný debug, odstraněno phpinfo, opraven typ výsledku databáze, SQL placeholdery a neaktuální role na úvodní stránce.
@@ -29,10 +29,18 @@ Testy modelů používají databázový testovací objekt. Ověřují zamítnut�
 
 1. Přihlásit zaměstnance se skladovou a výrobní rolí, případně pouze expedicí. Účet bez role musí být odmítnut.
 2. Vytvořit převodku, načíst paletu, otevřít detail, odebrat paletu a celou položku, znovu doplnit a uzavřít. U přípravy zkontrolovat zachování plánovaných množství.
-3. Připravit dodací list, načíst paletu, ověřit odmítnutí duplicitního skenu a překročení množství. Vyzkoušet odebrání palety, položky a obsahu balíku.
+3. Připravit dodací list, načíst paletu, ověřit odmítnutí duplicitního skenu a překročení množství. Vyzkoušet odebrání palety a položky.
 4. Změnit ID v požadavku na položku jiného dokladu; požadavek nesmí nic změnit. Stejně ověřit uzavřený a realizovaný doklad.
 5. Dvěma čtečkami současně načíst stejnou paletu a současně založit novou převodku. Operace musí mít jediný výsledek. Ověřit také paralelní práci v Heliosu.
 6. Ověřit převod do prodejny, odvedení výroby a zprávy při neúspěchu. Procedura převodu musí změnit disponibilní množství zdrojové palety a uzavírací procedury stav dokladu; jinak aplikace operaci vrátí zpět.
 7. Na Androidu ověřit Enter ze čtečky, návrat fokusu po chybě, potvrzení mazání a chování při výpadku sítě. Po nejasném výsledku nejprve zkontrolovat stav dokladu.
 
 Definice SQL procedur a triggerů nejsou součástí repozitáře. Je nutné ověřit, že respektují vnější transakci, neprovádějí její nekontrolovaný COMMIT/ROLLBACK a správně řeší souběh se zápisy z Heliosu. Testovat s účtem a nastavením odpovídajícím produkci. Nasazení nemění databázové schéma.
+
+## Úklid nepoužívaných funkcí
+
+Odstraněny balíky na dodacím listu, ruční zadání a editace množství a staré odvádění operací v expedici. Odstraněny související formuláře, šablony, session proměnné, nepoužívané modelové metody a starý zakomentovaný JavaScript. Aplikace již nepoužívá tabulku `agrafa_ligum_dl_polozka_balik`; databázové objekty ani historická data se nemažou.
+
+Samostatné odvedení palety z výroby v `ProductionPresenter` zůstává. Rovněž zůstávají varianty převodů ze Schenkeru a ostatních dokladů, o jejichž odstranění nebylo rozhodnuto.
+
+Po nasazení vymazat cache Nette v `temp/cache`, aby se znovu sestavil DI kontejner bez odstraněných služeb.

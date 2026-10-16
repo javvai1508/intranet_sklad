@@ -2,31 +2,7 @@
 
 namespace App\Models;
 
-use Nette;
-
 class MaterialModel extends BaseModel {
-
-    /**
-     * dohledání a dotažení skladového dokladu podle čísla (ParovaciZnak)
-     * @param type $parovaciZnak
-     */
-    public function getStockDocPZ($parovaciZnak) {
-        // převod ze Schenkeru
-        $row = $this->db->query("SELECT do.ID, "
-                        . "do.RadaDokladu, "
-                        . "do.PoradoveCislo, "
-                        . "do.CisloOrg, "
-                        . "do.DatPorizeni, "
-                        . "do.ParovaciZnak, "
-                        . "do.DruhPohybuZbo, "
-                        . "do.IDSklad, "
-                        . "CASE WHEN doe._exp_dat_uzavreno IS NOT NULL THEN 1 ELSE 0 END AS StavDLExp, "
-                        . "CASE WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100303' THEN 'fromSchenker' WHEN do.IDSklad = '00100304' AND do.DruhPohybuZbo = 2 THEN 'delivery' WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100304' THEN 'toSchenker' WHEN do.DruhPohybuZbo = 0 /*AND do.IDSklad = '00100304'*/ THEN 'receipt' ELSE 'undefined' END AS DispatchType "
-                        . "FROM TabDokladyZbozi do "
-                        . "LEFT JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.ParovaciZnak = ? AND do.IDSklad IN ('00100303', '00100304')", $parovaciZnak)->fetch();
-        return $row;
-    }
 
     /** !!!
      * dohledání a dotažení výdejky
@@ -104,11 +80,6 @@ class MaterialModel extends BaseModel {
                         . "LEFT JOIN TabDokladyZbozi vod ON vod.ID = vo.IDDoklad "
                         . "WHERE pr.ID = ?", $itemId)->fetch();
 
-                        /*. "LEFT JOIN (SELECT po.ID AS IDPohyb, COUNT(vcp.ID) AS cnt "
-                        . "FROM TabVyrCP vcp "
-                        . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
-                        . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID "*/
-
     }
 
     /**
@@ -164,25 +135,6 @@ class MaterialModel extends BaseModel {
         $res["IDDoklad"] = $this->db->query("SELECT ID FROM TabDokladyZbozi_EXT WHERE _skl_token = ?", $token)->fetchField();
         return $res;
 
-/* jak na procedury v pdo        
-$sql = "EXEC dbo.hp_InsertHlavickyOZ @Ident=?, @Sklad=?, @DruhPohybu=?, @RadaDokladu=?, @Insert=?, @IDPosta=?,
-		@Mena=?, @CisloOrg=?, @DatumPorizeni=?";
-
-$pdo = $this->helios->getPdo();
-$sth = $pdo->prepare($sql);
-$this->invoiceId = (int)$this->invoiceId;
-$ident = &$this->invoiceId;
-$sth->bindParam(1, $ident, \PDO::PARAM_INT|\PDO::PARAM_INPUT_OUTPUT, 20);
-$sth->bindParam(2, $sklad);
-$sth->bindParam(3, $druhpohybu);
-$sth->bindParam(4, $radadokladu);
-$sth->bindParam(5, $insert);
-$sth->bindParam(6, $posta);
-$sth->bindParam(7, $mena);
-$sth->bindParam(8, $org);
-$sth->bindParam(9, $datum);
-$sth->execute();
-*/
     }
 
     /** !!!
@@ -375,7 +327,6 @@ $sth->execute();
             }
             return $res;
     }
-
 
     public function removeDispatchItem($itemId, $documentId)
     {

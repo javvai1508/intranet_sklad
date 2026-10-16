@@ -25,13 +25,7 @@ class SignFormFactory
                 ->setRequired('Zadejte jméno')
                 ->setHtmlAttribute('class', 'form-control')
                 ->setHtmlAttribute('placeholder', 'Jméno');
-/*        $form->addPassword('password', 'Heslo')
-                ->setRequired('Zadejte heslo')
-                ->setHtmlAttribute('class', 'form-control')
-                ->setHtmlAttribute('placeholder', 'Heslo');
 
-        $form->addCheckbox('remember', 'Zapamatuj si mě');*/
-        
         $form->addSubmit('send', 'Přihlásit')
                 ->setHtmlAttribute('class', 'btn btn-lg btn-primary col-xs-12');
 

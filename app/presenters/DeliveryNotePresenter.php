@@ -5,8 +5,6 @@ namespace App\Presenters;
 use App\Models\DeliveryNoteModel,
     App\Forms\SetDeliveryNoteFormFactory,
     App\Forms\ReadBarCodeFormFactory,
-    App\Forms\SetQuantityFormFactory,
-    App\Forms\SetFinalOperationQuantityFormFactory,
     Nette\Application\UI\Form;
 
 class DeliveryNotePresenter extends BasePresenter {
@@ -22,12 +20,6 @@ class DeliveryNotePresenter extends BasePresenter {
 
     /** @var DeliveryNoteId */
     private $deliveryNoteId;
-    private $packageNr;
-    private $packageOpen;
-
-    public function __construct() {
-        parent::__construct();
-    }
 
     public function startup() {
         parent::startup();
@@ -58,14 +50,11 @@ class DeliveryNotePresenter extends BasePresenter {
                 $readBarCodeDefaults = array('deliveryNoteId' => $this->deliveryNoteId);
                 $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
             }
-            \Tracy\Debugger::barDump($this->template->deliveryNote);
+
         }
         // když není deliveryNoteId zobrazit formulář pro výběr
 
-// \Tracy\Debugger::barDump($this->showSession());
     }
-
-    /* ------------- vyhledat DL -------------------------------------- */
 
     /**
      * SetDeliveryNote form factory.
@@ -94,8 +83,6 @@ class DeliveryNotePresenter extends BasePresenter {
         return $form;
     }
 
-    /* ------------- čtení čárového kódu -------------------------------------- */
-
     /**
      * 
      * @param type $deliveryNoteId
@@ -113,7 +100,6 @@ class DeliveryNotePresenter extends BasePresenter {
         $serialNumber = substr($serialNumber, 2, strlen($serialNumber) - 2);
 
         // nejdřív zkontrolovat, jestli se nejedná o skladovou položku
-            $itemId = null;
             $serialNumberRow = $this->dataModel->checkSerialNumber($deliveryNoteId, $serialNumber);
 
             // kontroly na množství na skladě
@@ -135,9 +121,6 @@ class DeliveryNotePresenter extends BasePresenter {
                 }
             }
 
-        \Tracy\Debugger::barDump($serialNumberRow);
-        // \Tracy\Debugger::barDump($res);
-        // $this->flashMessage($values->BarCode);
         $this->redirect('DeliveryNote:default');
 
     }
@@ -151,13 +134,7 @@ class DeliveryNotePresenter extends BasePresenter {
      */
     protected function createComponentReadBarCodeForm() {
         $form = $this->readBarCodeFactory->create();
-        /*
-          $form->onValidate[] = function (Form $form) {
-          $values = $form->values;
 
-          };
-         * 
-         */
         $form->onSuccess[] = function (Form $form, $values) {
             if ((string) $values->deliveryNoteId !== (string) $this->getSession('deliveryNote')->deliveryNoteId) {
                 $this->flashMessage('Výběr dokladu se změnil. Obnovte stránku a načtěte paletu znovu.', 'danger');
@@ -182,37 +159,13 @@ class DeliveryNotePresenter extends BasePresenter {
      * uzavření dodacího listu
      */
     public function handleCloseDeliveryNote() {
-        $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
-/*
-        if ($deliveryNote->SkupinaTisk == 'nh') {
-            $res = $this->dataModel->checkDeliveryNoteBeforeClosing($this->getSession('deliveryNote')->deliveryNoteId);
-            // $this->flashMessage($res);
-            // odeslání zprávy o nedodaném zboží
-            if ($res > 0) {
-                // generovat PDF
-                $this->createDeliveryNoteErrorPDF($this->getSession('deliveryNote')->deliveryNoteId);
-                // generovat soubor s mailem, kam to poslat
-                $deliveryNote = $this->dataModel->getDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId);
-                $responsibleMail = $this->dataModel->getResponsibleMail($this->getSession('deliveryNote')->deliveryNoteId);
-                $f = fopen("e:\\fs\\data_helios\\TBLT_EXPED_NH\\" . "dl" . $deliveryNote->ParovaciZnak . ".pdf.to", "w");
-                fwrite($f, $responsibleMail);
-                fclose($f);
-            }
-        }
-        // \Tracy\Debugger::barDump($deliveryNote);
-        // $this->redirect('DeliveryNote:default');
-*/
+
         $res = $this->warehouseAction(fn() => $this->dataModel->closeDeliveryNote($this->getSession('deliveryNote')->deliveryNoteId));
         if (!$res) {
             $this->flashMessage('Dodací list se nepodařilo uzavřít!', 'danger');
         } else {
-// vytvořit soubor v adresáři pro tisk DL
-/*
-            $f = fopen("c:\\inetpub\\wwwroot\\www\\batch_" . $deliveryNote->SkupinaTisk . "\\" . $this->getSession('deliveryNote')->deliveryNoteId . ".txt", "w");
-            fwrite($f, $this->getSession('deliveryNote')->deliveryNoteId);
-*/
+
             $this->getSession('deliveryNote')->remove();
-            $this->getSession('package')->remove();
             $this->redirect('Material:default');
         }
     }
@@ -239,27 +192,22 @@ class DeliveryNotePresenter extends BasePresenter {
                 $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
                 $this->redirect('DeliveryNote:default');
             }
-// kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
 
         if (!$this->warehouseAction(function () use ($itemId) { $this->dataModel->assertDocument($this->getSession('deliveryNote')->deliveryNoteId, $itemId, null, false); return true; })) { $this->redirect('default'); }
         $deliveryNoteItem = $this->dataModel->getDeliveryNoteItem($itemId);
         $deliveryNoteItemSN = $this->dataModel->getDeliveryNoteItemSN($itemId);
-        $this->packageNr = $this->getSession('package')->number;
-        $this->packageOpen = $this->getSession('package')->open;
 
         $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
         $this->template->deliveryNote = $deliveryNote;
         $this->template->deliveryNoteItemId = $itemId;
         $this->template->deliveryNoteItem = $deliveryNoteItem;
         $this->template->deliveryNoteItemSNs = $deliveryNoteItemSN;
-        $this->template->packageOpen = $this->packageOpen;
 
         if ($this["readBarCodeForm"]) {
             $readBarCodeDefaults = array('deliveryNoteId' => $this->deliveryNoteId);
             $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
         }
 
-        \Tracy\Debugger::barDump($deliveryNoteItem);
     }
 
     /**
@@ -273,43 +221,4 @@ class DeliveryNotePresenter extends BasePresenter {
         $this->redirect('DeliveryNote:itemDetail', $itemId);
     }
 
-    /**
-     * zobrazení detailu položky dodacího listu (rozpis výrobních čísel)
-     * @param type $deliveryNoteId
-     */
-    public function renderPackages() {
-        $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
-        $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
-            if (!$deliveryNote) {
-                $this->getSession('deliveryNote')->remove();
-                $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
-                $this->redirect('DeliveryNote:default');
-            }
-// kontrola, kdy to můžu udělat (co musí být v DL vyplněné)
-        $deliveryNotePackages = $this->dataModel->getDeliveryNotePackages($this->deliveryNoteId);
-        $this->packageNr = $this->getSession('package')->number;
-        $this->packageOpen = $this->getSession('package')->open;
-
-        $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
-        $this->template->deliveryNote = $deliveryNote;
-// $this->template->deliveryNoteItemId = $itemId;
-// $this->template->deliveryNoteItem = $deliveryNoteItem;
-        $this->template->packages = $deliveryNotePackages;
-        $this->template->packageOpen = $this->packageOpen;
-
-        if ($this["readBarCodeForm"]) {
-            $readBarCodeDefaults = array('deliveryNoteId' => $this->deliveryNoteId);
-            $this["readBarCodeForm"]->setDefaults($readBarCodeDefaults);
-        }
-
-        \Tracy\Debugger::barDump($deliveryNotePackages);
-    }
-
-
-    public function handleRemoveFromPackage($packageId)
-    {
-        $this->warehouseAction(fn() => $this->dataModel->removeFromPackage($packageId,
-            $this->getSession('deliveryNote')->deliveryNoteId));
-        $this->redirect('DeliveryNote:packages');
-    }
 }

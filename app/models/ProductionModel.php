@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Nette;
-
 class ProductionModel extends BaseModel {
 
     /**
@@ -32,11 +30,6 @@ class ProductionModel extends BaseModel {
     private function closeProductionInternal($idVyrCis, $cisloZam) {
 
             // spustit akci na přidání položky do výdejky
-            /* 
-            * doplnit ošetření výjimek - interní hlášky
-            * zkontrolovat rychlost - realizace dokladu (zatím se nerealizuje)
-            */
-            // $res = $this->db->query("EXEC dbo.hpx_agrafa_vyr_odvedeni_vc_tablet @IDPrijem = NULL, @IDVyrCis = ?, @CisloZam = ?; ", $idVyrCis, $cisloZam)->fetch();
 
             $res = $this->db->query("SET NOCOUNT ON; "
             . "DECLARE @IDPrijem INT; "
@@ -47,7 +40,6 @@ class ProductionModel extends BaseModel {
             return $res;
 
     }
-
 
     public function closeProduction($idVyrCis, $cisloZam)
     {
