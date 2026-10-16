@@ -6,7 +6,6 @@ namespace App;
 
 use Nette\Bootstrap\Configurator;
 
-
 class Bootstrap
 {
 	public static function boot(): Configurator
@@ -14,15 +13,10 @@ class Bootstrap
 		$configurator = new Configurator;
 		$appDir = dirname(__DIR__);
 
-		//$configurator->setDebugMode('46.13.201.253');
-		$configurator->setDebugMode(true);
+		$configurator->setDebugMode(false);
 		$configurator->enableTracy($appDir . '/log');
 
 		$configurator->setTempDirectory($appDir . '/temp');
-
-		$configurator->createRobotLoader()
-			->addDirectory(__DIR__)
-			->register();
 
 		$configurator->addConfig($appDir . '/config/common.neon');
 		$configurator->addConfig($appDir . '/config/services.neon');

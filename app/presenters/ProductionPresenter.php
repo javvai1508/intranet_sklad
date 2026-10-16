@@ -10,11 +10,12 @@ class ProductionPresenter extends BasePresenter
 {
 
     public function __construct(
-        private ProductionModel $dataModel,
-        private ReadBarCodeFormFactory $readBarCodeFactory,
+        \Nette\Database\Explorer $database,
+        private readonly ProductionModel $dataModel,
+        private readonly ReadBarCodeFormFactory $readBarCodeFactory,
     )
     {
-        parent::__construct();
+        parent::__construct($database);
     }
 
     public function startup()
@@ -28,7 +29,7 @@ class ProductionPresenter extends BasePresenter
 
     public function renderDefault()
     {
-        // \Tracy\Debugger::barDump($this->showSession());
+
         $this->template->nadpis = 'Odvádění z výroby';
     }
 
@@ -47,7 +48,7 @@ class ProductionPresenter extends BasePresenter
              * odvedení procedurou 
              */
             $barCodePref = substr($values->BarCode, 0, 2);
-            if ($barCodePref != '00') {
+            if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
                 $this->flashMessage('Není číslo palety!');
                 $this->redirect('Production:');
 
@@ -60,15 +61,15 @@ class ProductionPresenter extends BasePresenter
                 if ($sn->Odvedeno + $sn->OdvedenoNereal >= $sn->Zadane) {
                     $this->flashMessage('Už bylo jednou odvedeno!');
                 } else {
-                    $idPrijem = $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']);
-                    // $this->flashMessage($idPrijem);
+                    $idPrijem = $this->warehouseAction(fn() => $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']));
+                    if ($idPrijem) { $this->flashMessage('Paleta byla odvedena na sklad.', 'success'); }
                 }
 
             } else {
                 $this->flashMessage('Chybné číslo palety!');
             }
             $this->redirect('Production:');
-            \Tracy\Debugger::barDump($values);
+
         };
 
         return $form;

@@ -2,43 +2,21 @@
 
 namespace App\Presenters;
 
-use Nette,
-    Nette\Utils;
-
-class HomepagePresenter extends BasePresenter {
-
-    public function __construct() {
-        parent::__construct();
-    }
-
-    public function startup() {
-        parent::startup();
-    }
-
-    /**
-     * 
-     */
-    public function renderDefault() {
-        // \Tracy\Debugger::barDump($sessionDataTyp);
-        /*
-         *  redirect na presenter podle práv a přednastavení
-         * 0 = expedice
-         * 1 = vyroba - výroba
-         * 2 = sklad - sklad 
-         */
-        if ($this->user->getIdentity()->getData()["vychozi"] !== NULL) {
-            if ($this->user->getIdentity()->getData()["vychozi"] == 0 AND $this->user->isInRole("expedice")) {
-                $this->redirect('DeliveryNote:default');
-            } elseif ($this->user->getIdentity()->getData()["vychozi"] == 1 AND $this->user->isInRole("vyroba")) {
-                $this->redirect('Production:default');
-            } elseif ($this->user->getIdentity()->getData()["vychozi"] == 2 AND $this->user->isInRole("sklad")) {
-                $this->redirect('Material:default');
-            } else {
-                
-            }
-        } else {
-            
+class HomepagePresenter extends BasePresenter
+{
+    public function renderDefault()
+    {
+        // Výchozí modul zaměstnance: 0 = expedice, 1 = výroba, 2 = sklad.
+        $default = $this->user->getIdentity()->getData()['vychozi'];
+        if ($default === null) {
+            return;
+        }
+        if ($default == 0 && $this->user->isInRole('expedice')) {
+            $this->redirect('DeliveryNote:default');
+        } elseif ($default == 1 && $this->user->isInRole('vyroba')) {
+            $this->redirect('Production:default');
+        } elseif ($default == 2 && $this->user->isInRole('sklad')) {
+            $this->redirect('Material:default');
         }
     }
-
 }

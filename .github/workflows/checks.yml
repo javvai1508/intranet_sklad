@@ -1,0 +1,24 @@
+name: Code checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, dom, pdo_sqlite
+          tools: composer:v2
+      - run: find app www tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: composer validate --no-check-publish
+      - run: composer audit --locked --abandoned=report
+      - run: composer install --no-interaction --prefer-dist
+      - run: composer dump-autoload --optimize --strict-psr
+      - run: php tests/warehouse.php
+      - run: php tests/framework.php
+      - run: php tests/pages.php
+      - run: node --check www/js/main.js
+      - run: node tests/signals.js

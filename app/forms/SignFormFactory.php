@@ -20,17 +20,12 @@ class SignFormFactory
     public function create(): Form
     {
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         $form->addText('username', 'Jméno')
                 ->setRequired('Zadejte jméno')
                 ->setHtmlAttribute('class', 'form-control')
                 ->setHtmlAttribute('placeholder', 'Jméno');
-/*        $form->addPassword('password', 'Heslo')
-                ->setRequired('Zadejte heslo')
-                ->setHtmlAttribute('class', 'form-control')
-                ->setHtmlAttribute('placeholder', 'Heslo');
 
-        $form->addCheckbox('remember', 'Zapamatuj si mě');*/
-        
         $form->addSubmit('send', 'Přihlásit')
                 ->setHtmlAttribute('class', 'btn btn-lg btn-primary col-xs-12');
 

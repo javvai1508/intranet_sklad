@@ -2,31 +2,7 @@
 
 namespace App\Models;
 
-use Nette;
-
 class MaterialModel extends BaseModel {
-
-    /**
-     * dohledání a dotažení skladového dokladu podle čísla (ParovaciZnak)
-     * @param type $parovaciZnak
-     */
-    public function getStockDocPZ($parovaciZnak) {
-        // převod ze Schenkeru
-        $row = $this->db->query("SELECT do.ID, "
-                        . "do.RadaDokladu, "
-                        . "do.PoradoveCislo, "
-                        . "do.CisloOrg, "
-                        . "do.DatPorizeni, "
-                        . "do.ParovaciZnak, "
-                        . "do.DruhPohybuZbo, "
-                        . "do.IDSklad, "
-                        . "CASE WHEN doe._exp_dat_uzavreno IS NOT NULL THEN 1 ELSE 0 END AS StavDLExp, "
-                        . "CASE WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100303' THEN 'fromSchenker' WHEN do.IDSklad = '00100304' AND do.DruhPohybuZbo = 2 THEN 'delivery' WHEN do.DruhPohybuZbo = 4 AND do.IDSklad = '00100304' THEN 'toSchenker' WHEN do.DruhPohybuZbo = 0 /*AND do.IDSklad = '00100304'*/ THEN 'receipt' ELSE 'undefined' END AS DispatchType "
-                        . "FROM TabDokladyZbozi do "
-                        . "LEFT JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.ParovaciZnak = ? AND do.IDSklad IN ('00100303', '00100304')", $parovaciZnak)->fetch();
-        return $row;
-    }
 
     /** !!!
      * dohledání a dotažení výdejky
@@ -104,11 +80,6 @@ class MaterialModel extends BaseModel {
                         . "LEFT JOIN TabDokladyZbozi vod ON vod.ID = vo.IDDoklad "
                         . "WHERE pr.ID = ?", $itemId)->fetch();
 
-                        /*. "LEFT JOIN (SELECT po.ID AS IDPohyb, COUNT(vcp.ID) AS cnt "
-                        . "FROM TabVyrCP vcp "
-                        . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
-                        . "GROUP BY po.ID) cntvc ON cntvc.IDPohyb = pr.ID "*/
-
     }
 
     /**
@@ -157,32 +128,13 @@ class MaterialModel extends BaseModel {
      * založení výdejky mimo operace (vlastní spotřeba, zmetek, prodej)
      * @return type
      */
-    public function openNewDispatch($dispatchType) {
-        $token = uniqid();
+    private function openNewDispatchInternal($dispatchType) {
+        $token = bin2hex(random_bytes(6));
         // založit pouze hlavičku
         $this->db->query("SET NOCOUNT ON; EXEC hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet @TypVydejky = ?, @Token = ?", $dispatchType, $token);
         $res["IDDoklad"] = $this->db->query("SELECT ID FROM TabDokladyZbozi_EXT WHERE _skl_token = ?", $token)->fetchField();
         return $res;
 
-/* jak na procedury v pdo        
-$sql = "EXEC dbo.hp_InsertHlavickyOZ @Ident=?, @Sklad=?, @DruhPohybu=?, @RadaDokladu=?, @Insert=?, @IDPosta=?,
-		@Mena=?, @CisloOrg=?, @DatumPorizeni=?";
-
-$pdo = $this->helios->getPdo();
-$sth = $pdo->prepare($sql);
-$this->invoiceId = (int)$this->invoiceId;
-$ident = &$this->invoiceId;
-$sth->bindParam(1, $ident, \PDO::PARAM_INT|\PDO::PARAM_INPUT_OUTPUT, 20);
-$sth->bindParam(2, $sklad);
-$sth->bindParam(3, $druhpohybu);
-$sth->bindParam(4, $radadokladu);
-$sth->bindParam(5, $insert);
-$sth->bindParam(6, $posta);
-$sth->bindParam(7, $mena);
-$sth->bindParam(8, $org);
-$sth->bindParam(9, $datum);
-$sth->execute();
-*/
     }
 
     /** !!!
@@ -199,7 +151,7 @@ $sth->execute();
                         . "CONVERT(INT, vc.Mnozstvi) AS Mnozstvi, "
                         . "CONVERT(INT, vc.Mnozstvi + vc.MnozstviKPrijmu - vc.MnozstviKVydeji) AS MnozstviPoPrijmuAVydeji, "
                         . "vc.IDStavSkladu AS IDZboSklad "
-                        . "FROM TabVyrCS vc "
+                        . "FROM TabVyrCS vc WITH (UPDLOCK, HOLDLOCK) "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
                         . "WHERE vc.Nazev1 = ? AND skl.IDSklad = ?", $serialNumber, $idSklad)->fetch();
     }
@@ -210,8 +162,7 @@ $sth->execute();
      * @param type $mnozstviPriprava
      * @return type
      */
-    public function updateDispatchItemOther($barCode, $dispatchId) {
-        // transakce
+    private function updateDispatchItemOtherInternal($barCode, $dispatchId) {
         $res = -9;
             // spustit akci na přidání položky do výdejky
             $itemId = $this->db->query("SET NOCOUNT ON "
@@ -242,7 +193,7 @@ $sth->execute();
                         . "JOIN TabVyrCS vc ON vcp.IDVyrCis = vc.ID "
                         . "JOIN TabPohybyZbozi po ON po.ID = vcp.IDPolozkaDokladu "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
-                        . "WHERE vc.Nazev1 = %s AND po.IDDoklad = ?", $serialNumber, $dispatchId)->fetch();
+                        . "WHERE vc.Nazev1 = ? AND po.IDDoklad = ?", $serialNumber, $dispatchId)->fetch();
     }
 
     /** !!!
@@ -251,8 +202,7 @@ $sth->execute();
      * @param type $mnozstviPriprava
      * @return type
      */
-    public function updateDispatchItemPrepare($barCode, $dispatchId) {
-        // transakce
+    private function updateDispatchItemPrepareInternal($barCode, $dispatchId) {
         $res = -9;
             // spustit akci na přidání položky do výdejky
             $itemId = $this->db->query("SET NOCOUNT ON "
@@ -269,7 +219,7 @@ $sth->execute();
      * @param type $dispatchId
      * @return boolean
      */
-    public function closeDispatch($dispatchId) {
+    private function closeDispatchInternal($dispatchId) {
 
         return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej @ID = ?", $dispatchId);
     }
@@ -279,7 +229,7 @@ $sth->execute();
      * @param type $dispatchId
      * @return boolean
      */
-    public function closeDispatchPrepare($dispatchId) {
+    private function closeDispatchPrepareInternal($dispatchId) {
 
         return $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava @ID = ?", $dispatchId);
     }
@@ -288,8 +238,7 @@ $sth->execute();
      * 
      * @param type $itemId
      */
-    public function removeDispatchItem($itemId) {
-        // transakce
+    private function removeDispatchItemInternal($itemId) {
             $res = $this->db->query("UPDATE TabPohybyZbozi "
                     . "SET Mnozstvi = 0 "
                     . "WHERE ID = ?", $itemId);
@@ -304,8 +253,7 @@ $sth->execute();
      * odebrání palety z dokladu - převod do Schenkeru
      * @param type $itemSNId
      */
-    public function removeDispatchItemSN($itemSNId) {
-        // transakce 
+    private function removeDispatchItemSNInternal($itemSNId) {
             $res = true;
             $itemSNRow = $this->db->query("SELECT "
                             . "IDPolozkaDokladu AS ItemId, "
@@ -339,8 +287,7 @@ $sth->execute();
      * odebrání palety z dokladu - převod ze Schenkeru
      * @param type $itemSNId
      */
-    public function removeDispatchItemSNPrepare($itemSNId) {
-        // transakce 
+    private function removeDispatchItemSNPrepareInternal($itemSNId) {
             $res = $this->db->query("UPDATE TabVyrCP_EXT "
                         . "SET _exp_mnoz_potvrz = NULL "
                         . "WHERE ID = ?", $itemSNId);
@@ -359,7 +306,7 @@ $sth->execute();
                         . "CONVERT(INT, vc.Mnozstvi) AS Mnozstvi, "
                         . "CONVERT(INT, vc.Mnozstvi + vc.MnozstviKPrijmu - vc.MnozstviKVydeji) AS MnozstviPoPrijmuAVydeji, "
                         . "vc.IDStavSkladu AS IDZboSklad "
-                        . "FROM TabVyrCS vc "
+                        . "FROM TabVyrCS vc WITH (UPDLOCK, HOLDLOCK) "
                         . "JOIN TabStavSkladu skl ON skl.ID = vc.IDStavSkladu "
                         . "WHERE vc.Nazev1 = ? AND skl.IDSklad = ?", $serialNumber, $idSklad)->fetch();
     }
@@ -369,8 +316,7 @@ $sth->execute();
      * @param type $serialNumber
      * @return type
      */
-    public function moveSerialNumberToShop($barCode) {
-        // transakce
+    private function moveSerialNumberToShopInternal($barCode) {
         $res = -9;
             // spustit akci na přidání položky do výdejky
             $dispatchId = $this->db->query("SET NOCOUNT ON "
@@ -382,4 +328,122 @@ $sth->execute();
             return $res;
     }
 
+    public function removeDispatchItem($itemId, $documentId)
+    {
+        return $this->warehouseOperation(function () use ($itemId, $documentId) {
+            $this->assertDocument($documentId, $itemId);
+            $result = $this->removeDispatchItemInternal($itemId);
+
+            return $result;
+        });
+    }
+
+    public function removeDispatchItemSN($itemSNId, $documentId, $itemId)
+    {
+        return $this->warehouseOperation(function () use ($itemSNId, $documentId, $itemId) {
+            $this->assertDocument($documentId, $itemId, $itemSNId);
+            $result = $this->removeDispatchItemSNInternal($itemSNId);
+
+            return $result;
+        });
+    }
+
+    public function removeDispatchItemSNPrepare($itemSNId, $documentId, $itemId)
+    {
+        return $this->warehouseOperation(function () use ($itemSNId, $documentId, $itemId) {
+            $this->assertDocument($documentId, $itemId, $itemSNId);
+            $result = $this->removeDispatchItemSNPrepareInternal($itemSNId);
+
+            return $result;
+        });
+    }
+
+    public function removeDispatchItemPrepare($itemId, $documentId)
+    {
+        return $this->warehouseOperation(function () use ($itemId, $documentId) {
+            $this->assertDocument($documentId, $itemId);
+            $this->db->query('UPDATE e SET _exp_mnoz_potvrz = NULL FROM TabVyrCP_EXT e
+                JOIN TabVyrCP vc ON vc.ID = e.ID WHERE vc.IDPolozkaDokladu = ?', $itemId);
+            return true;
+        });
+    }
+
+    public function closeDispatch($dispatchId)
+    {
+        return $this->warehouseOperation(function () use ($dispatchId) {
+            $this->assertDocument($dispatchId);
+            $result = $this->closeDispatchInternal($dispatchId);
+            $row = $this->getDispatch($dispatchId);
+            if (!$row || !(int) $row->StavDispExp) { throw new \RuntimeException('Výdejku se nepodařilo uzavřít.'); }
+            return $result;
+        });
+    }
+
+    public function closeDispatchPrepare($dispatchId)
+    {
+        return $this->warehouseOperation(function () use ($dispatchId) {
+            $this->assertDocument($dispatchId);
+            $result = $this->closeDispatchPrepareInternal($dispatchId);
+            $row = $this->getDispatch($dispatchId);
+            if (!$row || !(int) $row->StavDispExp) { throw new \RuntimeException('Výdejku se nepodařilo uzavřít.'); }
+            return $result;
+        });
+    }
+
+    public function updateDispatchItemOther($barCode, $dispatchId)
+    {
+        return $this->warehouseOperation(function () use ($barCode, $dispatchId) {
+            $this->assertDocument($dispatchId);
+            $row = $this->checkSerialNumberOther($dispatchId, $barCode);
+            if (!$row || $row->Mnozstvi <= 0 || $row->MnozstviPoPrijmuAVydeji <= 0 || $this->db->query('SELECT vc.ID FROM TabVyrCP vc JOIN TabPohybyZbozi p ON p.ID = vc.IDPolozkaDokladu WHERE p.IDDoklad = ? AND vc.IDVyrCis = ?', $dispatchId, $row->IDVyrCis)->fetch()) { throw new \RuntimeException('Paletu nelze přidat nebo je již potvrzená.'); }
+            $result = $this->updateDispatchItemOtherInternal($barCode, $dispatchId);
+            if (!$this->db->query('SELECT vc.ID FROM TabVyrCP vc JOIN TabPohybyZbozi p ON p.ID = vc.IDPolozkaDokladu WHERE p.IDDoklad = ? AND vc.IDVyrCis = ?', $dispatchId, $row->IDVyrCis)->fetch()) {
+                throw new \RuntimeException('Paletu se nepodařilo přidat do dokladu.');
+            }
+
+            return $result;
+        });
+    }
+
+    public function updateDispatchItemPrepare($barCode, $dispatchId)
+    {
+        return $this->warehouseOperation(function () use ($barCode, $dispatchId) {
+            $this->assertDocument($dispatchId);
+            $row = $this->checkSerialNumberPrepare($dispatchId, $barCode);
+            if (!$row || $row->MnozstviPotvrz > 0) { throw new \RuntimeException('Paletu nelze přidat nebo je již potvrzená.'); }
+            $result = $this->updateDispatchItemPrepareInternal($barCode, $dispatchId);
+            $updated = $this->checkSerialNumberPrepare($dispatchId, $barCode);
+            if (!$updated || $updated->MnozstviPotvrz <= 0) { throw new \RuntimeException('Paletu se nepodařilo potvrdit.'); }
+
+            return $result;
+        });
+    }
+
+    public function moveSerialNumberToShop($barCode)
+    {
+        return $this->warehouseOperation(function () use ($barCode) {
+            $row = $this->checkSerialNumberToShop($barCode, '00100304');
+            if (!$row || $row->Mnozstvi <= 0 || $row->MnozstviPoPrijmuAVydeji <= 0) {
+                throw new \RuntimeException('Paleta již není na skladu.');
+            }
+            $result = $this->moveSerialNumberToShopInternal($barCode);
+            $updated = $this->checkSerialNumberToShop($barCode, '00100304');
+            if ($updated && $updated->MnozstviPoPrijmuAVydeji >= $row->MnozstviPoPrijmuAVydeji) {
+                throw new \RuntimeException('Převod palety nebyl potvrzen změnou skladového množství.');
+            }
+
+            return $result;
+        });
+    }
+
+    public function openNewDispatch($dispatchType)
+    {
+        return $this->warehouseOperation(function () use ($dispatchType) {
+            if ($this->checkDispatchOpen($dispatchType)) { throw new \RuntimeException('Otevřená výdejka již existuje. Vraťte se a otevřete ji.'); }
+            $result = $this->openNewDispatchInternal($dispatchType);
+            if (empty($result['IDDoklad'])) { throw new \RuntimeException('Výdejku se nepodařilo založit.'); }
+
+            return $result;
+        });
+    }
 }

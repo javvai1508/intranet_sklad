@@ -16,11 +16,10 @@ class ReadBarCodeFormFactory {
     public function create() {
 
         $form = new Form;
+        $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
         
         $form->addHidden('deliveryNoteId');
         $form->addHidden('dispatchId');
-        $form->addHidden('receiptId');
-        $form->addHidden('itemId');
         $form->addText('BarCode')
                 ->setHtmlAttribute('placeholder', 'Čárový kód')
                 ->setHtmlAttribute('class', 'form-control form-control-sm')
@@ -30,12 +29,6 @@ class ReadBarCodeFormFactory {
                 ->setHtmlAttribute('autofocus', true)
                 ->setHtmlAttribute('autocomplete', false);
 
-        /*
-        $form->addCheckbox('AddOne', 'Po jednom kusu?')
-                ->setAttribute('class', 'form-control form-control-lg checkbox-large');
-         * 
-         */
-        
         return $form;
     }
 
