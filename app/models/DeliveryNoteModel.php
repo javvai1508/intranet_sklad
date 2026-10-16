@@ -138,7 +138,6 @@ class DeliveryNoteModel extends BaseModel {
 
         $deliveryNoteId = $this->db->query("SELECT IDDoklad FROM TabPohybyZbozi WHERE ID = ?", $itemId)->fetch()->IDDoklad;
         $this->db->query("EXEC dbo.hp_VypCenOZPolozek_IDDokladu @IDDoklad = ?, @AktualizaceSlev = 0", $deliveryNoteId);
-        $this->db->query("EXEC dbo.hpx_agrafa_exp_aktualizuj_odebrane_mnozstvi_dl_ep @ID = ?", $deliveryNoteId);
     }
 
     /**
@@ -232,15 +231,8 @@ class DeliveryNoteModel extends BaseModel {
         if (!$item) {
             return false;
         }
-        $this->db->query('UPDATE TabPohybyZbozi_EXT
-            SET _exp_mnozstvi_vc = ISNULL(_exp_mnozstvi_vc, 0) - ? WHERE ID = ?', $item->MnozstviSN, $item->ItemId);
-        $this->db->query('DELETE FROM TabVyrCP WHERE ID = ?
-            AND NOT EXISTS(SELECT ID FROM TabVyrCP_EXT WHERE ID = TabVyrCP.ID
-                AND ISNULL(_exp_mnozstvi_vc_pozad, 0) > 0)', $itemSNId);
-        $this->db->query('UPDATE TabVyrCP SET Mnozstvi = 0 WHERE ID = ?
-            AND EXISTS(SELECT ID FROM TabVyrCP_EXT WHERE ID = TabVyrCP.ID
-                AND ISNULL(_exp_mnozstvi_vc_pozad, 0) > 0)', $itemSNId);
-        $this->updateDeliveryNoteItemQuantity($item->ItemId);
+        $this->db->query('DELETE FROM TabVyrCP WHERE ID = ?', $itemSNId);
+
         return true;
     }
 
