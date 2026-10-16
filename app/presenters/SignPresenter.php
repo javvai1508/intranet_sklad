@@ -4,13 +4,17 @@ namespace App\Presenters;
 
 use Nette;
 use Nette\Application\UI\Form;
-use App\forms\SignFormFactory;
+use App\Forms\SignFormFactory;
 
 final class SignPresenter extends BasePresenter
 {
 
-    /** @var SignFormFactory @inject */
-    public $signFormFactory;
+    public function __construct(
+        \Nette\Database\Explorer $database,
+        private readonly SignFormFactory $signFormFactory,
+    ) {
+        parent::__construct($database);
+    }
 
     public function renderIn()
     {

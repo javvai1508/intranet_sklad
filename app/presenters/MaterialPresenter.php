@@ -9,14 +9,16 @@ use App\Models\MaterialModel,
 class MaterialPresenter extends BasePresenter
 {
 
-    /** @var MaterialModel @inject */
-    public $dataModel;
-
-    /** @var ReadBarCodeFormFactory @inject */
-    public $readBarCodeFactory;
-
     /** @var DispatchId */
     private $dispatchId;
+
+    public function __construct(
+        \Nette\Database\Explorer $database,
+        private readonly MaterialModel $dataModel,
+        private readonly ReadBarCodeFormFactory $readBarCodeFactory,
+    ) {
+        parent::__construct($database);
+    }
 
     public function startup()
     {

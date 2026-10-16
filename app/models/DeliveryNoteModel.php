@@ -197,23 +197,13 @@ class DeliveryNoteModel extends BaseModel {
      * @param type $itemId
      * @return type
      */
-    public function getDeliveryNoteItem($itemId) {
-        return $this->db->query("SELECT "
-                        . "po.ID AS ID, "
-                        . "CASE WHEN ISNULL(po.Popis4, '') = '' THEN po.Nazev1 ELSE po.POpis4 END AS Vykres, "
-                        . "CASE WHEN SUBSTRING(km.SkupZbo, 1, 2) = '51' THEN ISNULL(CONVERT(NVARCHAR(20), kme._SPrumerJadra), '-') + '/U' + ISNULL(CONVERT(NVARCHAR(20), kme._STiskovyObvod), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._SPracovniDelkaSleeve), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._SCelkovaDelkaSleeve), '-') WHEN SUBSTRING(km.SkupZbo, 1, 2) = '55' THEN ISNULL(CONVERT(NVARCHAR(20), kme._VPrumerJadra), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._VPrumerPogumu), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._VDelkaPogumu), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._VPracDelka), '-') + '/' + ISNULL(CONVERT(NVARCHAR(20), kme._VDelkaValce), '-') ELSE '' END AS Rozmery, "
-                        . "CONCAT(CONVERT(NVARCHAR(10), kme._VPrumerJadra), '/', CONVERT(NVARCHAR(10), kme._VPrumerPogumu), '/', CONVERT(NVARCHAR(10), kme._VPracDelka), '/', CONVERT(NVARCHAR(10), kme._VDelkaValce)) AS VRozmery, "
-                        . "CONVERT(INT, poe._exp_mnozstvi_pozad_puvodni) AS Mnozstvi, "
-                        . "ISNULL(CONVERT(INT, poe._exp_mnozstvi_vc), 0) AS MnozstviVC,"
-                        . "dox.RadaDokladu + CONVERT(NVARCHAR(6), dox.PoradoveCislo) + '/' +CONVERT(NVARCHAR(10), pox.Poradi) AS Zakazka "
-                        . "FROM TabPohybyZbozi po "
-                        . "LEFT JOIN TabPohybyZbozi_EXT poe ON po.ID = poe.ID "
-                        . "LEFT JOIN TabStavSkladu skl ON po.IDZboSklad = skl.ID "
-                        . "LEFT JOIN TabKmenZbozi km ON skl.IDKmenZbozi = km.ID "
-                        . "LEFT JOIN TabKmenZbozi_EXT kme ON kme.ID = km.ID "
-                        . "LEFT JOIN TabPohybyZbozi pox ON po.IDOldPolozka = pox.ID "
-                        . "LEFT JOIN TabDokladyZbozi dox ON pox.IDDoklad = dox.ID "
-                        . "WHERE po.ID = ?", $itemId)->fetch();
+    public function getDeliveryNoteItem($itemId)
+    {
+        return $this->db->query('SELECT po.ID, po.RegCis, po.Nazev1 AS Nazev,
+            ISNULL(CONVERT(INT, po.Mnozstvi), 0) AS Mnozstvi,
+            ISNULL(CONVERT(INT, (SELECT SUM(vc.Mnozstvi) FROM TabVyrCP vc
+                WHERE vc.IDPolozkaDokladu = po.ID)), 0) AS MnozstviVC
+            FROM TabPohybyZbozi po WHERE po.ID = ?', $itemId)->fetch();
     }
 
     /**

@@ -10,8 +10,10 @@ use App\Helpers\RequireLoggedUser;
 class BasePresenter extends Nette\Application\UI\Presenter {
     use RequireLoggedUser; // bez přihlášení
 
-    /** @var Nette\Database\Explorer @inject */
-    public Nette\Database\Explorer $database;
+    public function __construct(protected readonly Nette\Database\Explorer $database)
+    {
+        parent::__construct();
+    }
 
     public function startup() {
         Parent::startup();
@@ -34,7 +36,6 @@ class BasePresenter extends Nette\Application\UI\Presenter {
             return null;
         }
     }
-
 
     protected function warehouseAction(callable $operation)
     {

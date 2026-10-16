@@ -10,11 +10,12 @@ class ProductionPresenter extends BasePresenter
 {
 
     public function __construct(
-        private ProductionModel $dataModel,
-        private ReadBarCodeFormFactory $readBarCodeFactory,
+        \Nette\Database\Explorer $database,
+        private readonly ProductionModel $dataModel,
+        private readonly ReadBarCodeFormFactory $readBarCodeFactory,
     )
     {
-        parent::__construct();
+        parent::__construct($database);
     }
 
     public function startup()

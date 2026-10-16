@@ -1,6 +1,15 @@
 document.addEventListener('click', function (event) {
     const link = event.target.closest('a[href]');
-    if (!link) return;
+    if (!link) {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
+        if (event.target.closest('button, input, select, textarea, label')) return;
+        const row = event.target.closest('tr[data-href]');
+        if (row) {
+            const destination = new URL(row.dataset.href, window.location.href);
+            if (destination.origin === location.origin) window.location.assign(destination.href);
+        }
+        return;
+    }
     const url = new URL(link.href, window.location.href);
     if (url.origin !== location.origin || !url.searchParams.has('do')) return;
     event.preventDefault();

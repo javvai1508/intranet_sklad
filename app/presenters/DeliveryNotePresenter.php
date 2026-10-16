@@ -9,17 +9,17 @@ use App\Models\DeliveryNoteModel,
 
 class DeliveryNotePresenter extends BasePresenter {
 
-    /** @var DeliveryNoteModel @inject */
-    public $dataModel;
-
-    /** @var SetDeliveryNoteFormFactory @inject */
-    public $setDeliveryNoteFactory;
-
-    /** @var ReadBarCodeFormFactory @inject */
-    public $readBarCodeFactory;
-
     /** @var DeliveryNoteId */
     private $deliveryNoteId;
+
+    public function __construct(
+        \Nette\Database\Explorer $database,
+        private readonly DeliveryNoteModel $dataModel,
+        private readonly SetDeliveryNoteFormFactory $setDeliveryNoteFactory,
+        private readonly ReadBarCodeFormFactory $readBarCodeFactory,
+    ) {
+        parent::__construct($database);
+    }
 
     public function startup() {
         parent::startup();
@@ -174,7 +174,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * smazání přípravy celé vybrané položky na dodacím listu
      * @param type $itemId
      */
-    public function handleRemoveDeliveryNoteItem($itemId) {
+    public function handleRemoveDeliveryNoteItem(int $itemId): void {
         $this->warehouseAction(fn() => $this->dataModel->removeDeliveryNoteItem($itemId, $this->getSession('deliveryNote')->deliveryNoteId));
 
         $this->redirect('DeliveryNote:default');
@@ -184,19 +184,20 @@ class DeliveryNotePresenter extends BasePresenter {
      * zobrazení detailu položky dodacího listu (rozpis výrobních čísel)
      * @param type $itemId
      */
-    public function renderItemDetail($itemId) {
+    public function renderItemDetail(int $itemId): void {
         $this->deliveryNoteId = $this->getSession('deliveryNote')->deliveryNoteId;
         $deliveryNote = $this->dataModel->getDeliveryNote($this->deliveryNoteId);
-            if (!$deliveryNote) {
-                $this->getSession('deliveryNote')->remove();
-                $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
-                $this->redirect('DeliveryNote:default');
-            }
+        if (!$deliveryNote) {
+            $this->getSession('deliveryNote')->remove();
+            $this->flashMessage('Vybraný dodací list neexistuje.', 'danger');
+            $this->redirect('DeliveryNote:default');
+        }
 
         if (!$this->warehouseAction(function () use ($itemId) { $this->dataModel->assertDocument($this->getSession('deliveryNote')->deliveryNoteId, $itemId, null, false); return true; })) { $this->redirect('default'); }
         $deliveryNoteItem = $this->dataModel->getDeliveryNoteItem($itemId);
         $deliveryNoteItemSN = $this->dataModel->getDeliveryNoteItemSN($itemId);
 
+        $this->template->nadpis = 'Dodací list: ' . $deliveryNote->ParovaciZnak;
         $this->template->deliveryNoteNr = $deliveryNote->ParovaciZnak;
         $this->template->deliveryNote = $deliveryNote;
         $this->template->deliveryNoteItemId = $itemId;
@@ -215,7 +216,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * @param type $itemId
      * @param type $itemSNId
      */
-    public function handleRemoveDeliveryNoteItemSN($itemId, $itemSNId) {
+    public function handleRemoveDeliveryNoteItemSN(int $itemId, int $itemSNId): void {
         $this->warehouseAction(fn() => $this->dataModel->removeDeliveryNoteItemSN($itemSNId, $this->getSession('deliveryNote')->deliveryNoteId, $itemId));
 
         $this->redirect('DeliveryNote:itemDetail', $itemId);

@@ -19,6 +19,7 @@ composer install
 find app www tests -name '*.php' -print0 | xargs -0 -n1 php -l
 php tests/warehouse.php
 php tests/framework.php
+php tests/pages.php
 node --check www/js/main.js
 node tests/signals.js
 ```
@@ -44,3 +45,11 @@ Odstraněny balíky na dodacím listu, ruční zadání a editace množství a s
 Samostatné odvedení palety z výroby v `ProductionPresenter` zůstává. Rovněž zůstávají varianty převodů ze Schenkeru a ostatních dokladů, o jejichž odstranění nebylo rozhodnuto.
 
 Po nasazení vymazat cache Nette v `temp/cache`, aby se znovu sestavil DI kontejner bez odstraněných služeb.
+
+## Detail palet a načítání tříd
+
+Přehled DL nabízí tlačítko Palety a otevření detailu kliknutím na řádek. V detailu lze odebrat konkrétní paletu nebo přípravu celé položky; uzavřený doklad je pouze pro čtení. Detail nezávisí na UmisteniKod a používá stejný kód výrobku, název a množství jako přehled. Nabídku zajišťuje společný layout pro Bootstrap 5.
+
+Závislosti presenterů jsou předávané konstruktorem. Composer má výslovné PSR-4 mapování stávajících adresářů a aplikace nepoužívá RobotLoader. Soubor `app/bootstrap.php` je přejmenován na `app/Bootstrap.php` a `app/helpers/requireLoggedUser.php` na `app/helpers/RequireLoggedUser.php`.
+
+Při nasazení proveďte `composer install --no-dev --optimize-autoloader` a vymažte `temp/cache`. Na Windows při ručním kopírování ověřte i přejmenování obou souborů (liší se velikostí písmen). Test `tests/pages.php` zpracovává skutečné Nette požadavky a vykresluje přehled/detail s testovacími daty; stále nenahrazuje test nad zákaznickým SQL Serverem.
