@@ -142,10 +142,10 @@
         </div>
         {/if}
                 <div class="text-center">
+                    <a n:href="default" class="btn btn-secondary btn-lg m-1"><i class="far fa-chevron-left"></i> Zpět</a>
                     {if $dispatch->StavDispExp == 1}
                         <span class="text-danger font-weight-bold">Uzavřeno: {$dispatch->DatUzavrenoExp}</span>
                     {else}
-                    <a n:href="default" class="btn btn-secondary btn-lg m-1"><i class="far fa-chevron-left"></i> Zpět</a>
                     <a n:href="closeDispatch!" n:if="($dispatch->StavDispExp == 0)" class="btn btn-success btn-lg m-1"><i class="far fa-forklift"></i> Uzavřít doklad</a>
                     {/if}
                 </div>

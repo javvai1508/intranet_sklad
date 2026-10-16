@@ -3,7 +3,7 @@
 <div class="content">
     <div class="d-flex justify-content-between align-items-center my-3">
         <h2>Palety položky dodacího listu</h2>
-        <a n:href="default" class="btn btn-secondary">Zpět na dodací list</a>
+        {*<a n:href="default" class="btn btn-secondary">Zpět na dodací list</a>*}
     </div>
     <table class="table table-bordered table-sm">
         <thead><tr><th>Kód</th><th>Název</th><th>Požadováno</th><th>Připraveno</th></tr></thead>
@@ -14,11 +14,10 @@
             <td class="text-center">{$deliveryNoteItem->MnozstviVC}</td>
         </tr></tbody>
     </table>
-    <div n:if="$deliveryNote->StavDLExp == 0" class="set-dn-form">
-        {include '../components/readBarCodeForm.latte', form => readBarCodeForm}
-    </div>
     <table class="table table-bordered table-striped table-sm">
-        <thead><tr><th>Paleta</th><th>Skladem</th><th>Na dodacím listu</th><th>Akce</th></tr></thead>
+        <thead><tr><th>Paleta</th><th>Skladem</th><th>Na dodacím listu</th><th>
+            <a n:href="default" class="btn btn-sm btn-primary mr-2"><i class="far fa-level-up"></i></a>
+        </th></tr></thead>
         <tbody>
             <tr n:foreach="$deliveryNoteItemSNs as $pallet">
                 <td>{$pallet->Nazev}</td>
@@ -28,14 +27,14 @@
                     <a n:if="$deliveryNote->StavDLExp == 0"
                        n:href="removeDeliveryNoteItemSN! $deliveryNoteItem->ID, $pallet->IDVyrCP"
                        class="btn btn-danger"
-                       data-nette-confirm-text="Opravdu chcete odebrat tuto paletu z dodacího listu?">Odebrat paletu</a>
+                       data-nette-confirm-text="Opravdu chcete odebrat tuto paletu z dodacího listu?"><i class="far fa-trash-alt"></i></a>
                 </td>
             </tr>
             <tr n:if="!count($deliveryNoteItemSNs)"><td colspan="4" class="text-center">Na položce nejsou žádné palety.</td></tr>
         </tbody>
     </table>
-    <a n:if="$deliveryNote->StavDLExp == 0 && count($deliveryNoteItemSNs)"
+    {*<a n:if="$deliveryNote->StavDLExp == 0 && count($deliveryNoteItemSNs)"
        n:href="removeDeliveryNoteItem! $deliveryNoteItem->ID"
        class="btn btn-outline-danger"
-       data-nette-confirm-text="Opravdu chcete odebrat všechny palety této položky?">Odebrat všechny palety položky</a>
+       data-nette-confirm-text="Opravdu chcete odebrat všechny palety této položky?">Odebrat všechny palety položky</a>*}
 </div>

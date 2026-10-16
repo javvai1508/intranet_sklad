@@ -26,7 +26,7 @@
                                 <th scope="col">Název</th>
                                 <th scope="col">Množství</th>
                                 <th scope="col">Palety</th>
-                                <th scope="col">Detail</th>
+                                {*<th scope="col">Detail</th>*}
                             </tr>
                         </thead>
                         <tbody>
@@ -36,7 +36,7 @@
                                     <td class="text-center">{$deliveryNoteItem->Nazev}</td>
                                     <td class="text-center font-weight-bold">{$deliveryNoteItem->Mnozstvi}/{$deliveryNoteItem->MnozstviVC}</td>
                                     <td class="text-center font-weight-bold">{$deliveryNoteItem->PocetVC}</td>
-                                    <td><a n:href="itemDetail $deliveryNoteItem->ID" class="btn btn-primary">Palety</a></td>
+                                    {*<td><a n:href="itemDetail $deliveryNoteItem->ID" class="btn btn-primary">Palety</a></td>*}
                                 </tr>
                             {/foreach}
                         </tbody>
@@ -45,6 +45,7 @@
             </div>
         </div>
                 <div class="text-center">
+                    <a n:href="changeDeliveryNote!" class="btn btn-secondary btn-lg m-1"><i class="far fa-exchange"></i> Změnit DL</a>
                     {if $deliveryNote->StavDLExp == 1}
                         {ifset $deliveryNote->DatUzavrenoExp}
                             <span class="text-danger font-weight-bold">Uzavřeno: {$deliveryNote->DatUzavrenoExp}</span>
@@ -52,7 +53,6 @@
                             <span class="text-danger font-weight-bold">Vyfakturováno</span>
                         {/ifset}
                     {else}
-                    <a n:href="changeDeliveryNote!" class="btn btn-secondary btn-lg m-1"><i class="far fa-exchange"></i> Změnit DL</a>
                     <a n:href="closeDeliveryNote!" n:if="($deliveryNote->StavDLExp == 0)" class="btn btn-success btn-lg m-1"><i class="far fa-forklift"></i> Uzavřít</a>
                     {/if}
                 </div>
