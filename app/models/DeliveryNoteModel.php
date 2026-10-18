@@ -178,19 +178,6 @@ class DeliveryNoteModel extends BaseModel {
             return $res;
     }
 
-    private function removeDeliveryNoteItemInternal($itemId)
-    {
-        $this->db->query('UPDATE TabPohybyZbozi_EXT SET _exp_mnozstvi_vc = 0 WHERE ID = ?', $itemId);
-        $this->db->query('DELETE FROM TabVyrCP WHERE IDPolozkaDokladu = ?
-            AND NOT EXISTS(SELECT ID FROM TabVyrCP_EXT WHERE ID = TabVyrCP.ID
-                AND ISNULL(_exp_mnozstvi_vc_pozad, 0) > 0)', $itemId);
-        $this->db->query('UPDATE TabVyrCP SET Mnozstvi = 0 WHERE IDPolozkaDokladu = ?
-            AND EXISTS(SELECT ID FROM TabVyrCP_EXT WHERE ID = TabVyrCP.ID
-                AND ISNULL(_exp_mnozstvi_vc_pozad, 0) > 0)', $itemId);
-        $this->updateDeliveryNoteItemQuantity($itemId);
-        return true;
-    }
-
     /**
      * výběr položky DL
      * @param type $itemId
@@ -244,16 +231,6 @@ class DeliveryNoteModel extends BaseModel {
     private function closeDeliveryNoteInternal($deliveryNoteId) {
         $this->db->query("EXEC dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava @ID = ?", $deliveryNoteId);
         return true;
-    }
-
-    public function removeDeliveryNoteItem($itemId, $documentId)
-    {
-        return $this->warehouseOperation(function () use ($itemId, $documentId) {
-            $this->assertDocument($documentId, $itemId);
-            $result = $this->removeDeliveryNoteItemInternal($itemId);
-
-            return $result;
-        });
     }
 
     public function removeDeliveryNoteItemSN($itemSNId, $documentId, $itemId)

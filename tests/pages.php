@@ -49,11 +49,19 @@ function page(string $action, array $params = []): string {
     checkPage($response instanceof Nette\Application\Responses\TextResponse, 'Expected an HTML response');
     return $response->getSource()->renderToString();
 }
+// A manually constructed signal must not permit removing a whole delivery-note item.
+$presenter = $factory->createPresenter('DeliveryNote');
+try {
+    $presenter->signalReceived('removeDeliveryNoteItem');
+    throw new RuntimeException('Whole delivery-note item removal must not be available');
+} catch (Nette\Application\UI\BadSignalException $e) {
+    // Removed signal is rejected by Nette before any database write.
+}
 $html = page('default');
 checkPage(str_contains($html, 'TEST-001') && str_contains($html, '>Palety</a>'), 'Overview needs a real link to pallets');
 $html = page('itemDetail', ['itemId' => 5]);
 checkPage(str_contains($html, 'PAL-TEST') && str_contains($html, 'Test výrobek'), 'Detail must render without UmisteniKod');
-checkPage(str_contains($html, 'removeDeliveryNoteItemSN') && str_contains($html, 'Odebrat paletu'), 'Missing pallet removal');
+checkPage(str_contains($html, 'removeDeliveryNoteItemSN') && str_contains($html, 'Opravdu chcete odebrat tuto paletu'), 'Missing pallet removal');
 checkPage(substr_count($html, 'id="menuButton"') === 1, 'Duplicate navigation menus');
 checkPage(str_contains($html, 'data-bs-toggle="dropdown"') && !str_contains($html, 'data-toggle="dropdown"'), 'Wrong Bootstrap dropdown attribute');
 $model->closed = true;

@@ -135,27 +135,20 @@ $tests['production failure rolls back'] = function () {
     rejects(fn() => model(App\Models\ProductionModel::class, $db)->closeProduction(7, 123));
     expect($db->rollbacks === 1 && $db->commits === 0, 'Production failure committed');
 };
-$tests['delivery deletion needs no packaging table'] = function () {
-    foreach ([false, true] as $serialOnly) {
-        $db = new TestDatabase(function ($sql, $params, $db) {
-            if (str_contains($sql, 'balik')) { throw new Exception('Deleted packaging dependency'); }
-            if (str_contains($sql, 'sp_getapplock')) return 0;
-            if (str_contains($sql, 'FROM TabDokladyZbozi d WITH')) return headerRow();
-            if (str_contains($sql, 'SELECT ID FROM TabPohybyZbozi') || str_contains($sql, 'SELECT vc.ID')) return (object) ['ID' => 5];
-            if (str_contains($sql, 'AS MnozstviSN')) return (object) ['ItemId' => 5, 'MnozstviSN' => 4];
-            if (str_contains($sql, 'SELECT IDDoklad')) return (object) ['IDDoklad' => 1];
-            if (str_contains($sql, 'UPDATE TabPohybyZbozi_EXT')) {
-                $db->quantity = str_contains($sql, ' - ?') ? $db->quantity - $params[0] : 0;
-                return true;
-            }
-            if (str_contains($sql, 'DELETE FROM TabVyrCP') || str_contains($sql, 'UPDATE TabVyrCP')
-                || str_contains($sql, 'UPDATE TabPohybyZbozi') || str_contains($sql, 'EXEC dbo.')) return true;
-            throw new Exception('Unexpected query: ' . $sql);
-        });
-        $m = model(App\Models\DeliveryNoteModel::class, $db);
-        $result = $serialOnly ? $m->removeDeliveryNoteItemSN(7, 1, 5) : $m->removeDeliveryNoteItem(5, 1);
-        expect($result === true && $db->commits === 1, 'Delivery deletion did not commit');
-        expect($db->quantity === ($serialOnly ? 6 : 0), 'Incorrect preparation quantity');
-    }
+$tests['delivery pallet removal keeps the document item'] = function () {
+    $db = new TestDatabase(function ($sql, $params) {
+        if (str_contains($sql, 'sp_getapplock')) return 0;
+        if (str_contains($sql, 'FROM TabDokladyZbozi d WITH')) return headerRow();
+        if (str_contains($sql, 'SELECT ID FROM TabPohybyZbozi') || str_contains($sql, 'SELECT vc.ID')) return (object) ['ID' => 5];
+        if (str_contains($sql, 'AS MnozstviSN')) return (object) ['ItemId' => 5, 'MnozstviSN' => 4];
+        if (str_contains($sql, 'DELETE FROM TabVyrCP WHERE ID = ?')) {
+            expect($params === [7], 'Must remove only the selected pallet');
+            return true;
+        }
+        throw new Exception('Unexpected write or query during pallet removal: ' . $sql);
+    });
+    $m = model(App\Models\DeliveryNoteModel::class, $db);
+    expect($m->removeDeliveryNoteItemSN(7, 1, 5) === true, 'Pallet removal failed');
+    expect($db->commits === 1 && $db->rollbacks === 0, 'Pallet removal must commit');
 };
 foreach ($tests as $name => $test) { $test(); echo "PASS: $name\n"; }

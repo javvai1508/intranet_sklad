@@ -171,16 +171,6 @@ class DeliveryNotePresenter extends BasePresenter {
     }
 
     /**
-     * smazání přípravy celé vybrané položky na dodacím listu
-     * @param type $itemId
-     */
-    public function handleRemoveDeliveryNoteItem(int $itemId): void {
-        $this->warehouseAction(fn() => $this->dataModel->removeDeliveryNoteItem($itemId, $this->getSession('deliveryNote')->deliveryNoteId));
-
-        $this->redirect('DeliveryNote:default');
-    }
-
-    /**
      * zobrazení detailu položky dodacího listu (rozpis výrobních čísel)
      * @param type $itemId
      */

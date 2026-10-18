@@ -54,6 +54,6 @@ U převodu do Schenkeru a plánovaného převodu do Loukova provádí tisk a rea
 - Doplnit `toLoukov` do procedury založení hlavičky s hodnotami uvedenými výše.
 - Zachovat ruční tisk a realizaci. Společné přidávání palet používá zdrojový sklad z hlavičky dokladu.
 
-## Zjištěný nesoulad aplikace a exportu
+## Pravidlo dodacích listů
 
-Při ověření 18. 10. 2026 na větvi `main` (`169d4a8`) metoda `removeDeliveryNoteItemInternal()` stále používá `TabVyrCP_EXT._exp_mnozstvi_vc_pozad`, který v dodaném exportu není. Stejný odkaz je i ve větvi `fix/warehouse-integrity`. Uživatel uvedl, že metodu již opravil; jeho opravu je potřeba synchronizovat do používané větve. Tento commit mění jen databázové podklady a PHP metodu nepřepisuje. Metoda pro odebrání jediné palety `removeDeliveryNoteItemSNInternal()` již tento sloupec nepoužívá.
+U dodacího listu nelze v aplikaci mazat celou položku ani hromadně odebírat všechny její palety. Lze odebírat pouze jednotlivé palety z otevřeného dokladu. Z aplikace byly odstraněny modelové metody pro hromadné odebrání i příslušný signál presenteru. Tím zaniká i odkaz této funkce na sloupec `_exp_mnozstvi_vc_pozad`, který dodaný export neobsahuje. Odebrání jednotlivé palety používá stávající opravenou metodu `removeDeliveryNoteItemSNInternal()`.

@@ -48,7 +48,7 @@ Po nasazení vymazat cache Nette v `temp/cache`, aby se znovu sestavil DI kontej
 
 ## Detail palet a načítání tříd
 
-Přehled DL nabízí tlačítko Palety a otevření detailu kliknutím na řádek. V detailu lze odebrat konkrétní paletu nebo přípravu celé položky; uzavřený doklad je pouze pro čtení. Detail nezávisí na UmisteniKod a používá stejný kód výrobku, název a množství jako přehled. Nabídku zajišťuje společný layout pro Bootstrap 5.
+Přehled DL nabízí tlačítko Palety a otevření detailu kliknutím na řádek. V detailu lze odebrat jednotlivou paletu. Celou položku ani všechny její palety hromadně odebrat nelze; příslušný signál a modelové metody byly odstraněny. Uzavřený doklad je pouze pro čtení. Detail nezávisí na UmisteniKod a používá stejný kód výrobku, název a množství jako přehled. Nabídku zajišťuje společný layout pro Bootstrap 5.
 
 Závislosti presenterů jsou předávané konstruktorem. Composer má výslovné PSR-4 mapování stávajících adresářů a aplikace nepoužívá RobotLoader. Soubor `app/bootstrap.php` je přejmenován na `app/Bootstrap.php` a `app/helpers/requireLoggedUser.php` na `app/helpers/RequireLoggedUser.php`.
 
