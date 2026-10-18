@@ -1,0 +1,16 @@
+-- Snapshot Helios002.zip, 2026-10-18; nejde o automatickou migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TRIGGER [dbo].[et_TabKmenZbozi_EXT_PDP] ON [dbo].[TabKmenZbozi_EXT] FOR INSERT, UPDATE
+AS
+IF @@ROWCOUNT = 0 RETURN
+SET NOCOUNT ON
+IF UPDATE(_ext_kodPDP)
+BEGIN
+UPDATE k SET k.IDKodPDP = i._ext_kodPDP
+FROM TabKmenZbozi k
+JOIN INSERTED i ON i.ID = k.ID
+END
+GO

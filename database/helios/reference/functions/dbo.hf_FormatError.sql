@@ -1,0 +1,10 @@
+-- Snapshot Helios002.zip, 2026-10-18; nejde o automatickou migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE FUNCTION [dbo].[hf_FormatError](@Err INT,@Msg NVARCHAR(MAX))RETURNS NVARCHAR(MAX)AS
+BEGIN
+RETURN CAST(@Err AS NVARCHAR(11))+N'|'+ISNULL(REPLACE(@Msg,N'%',N'%%'),N'')
+END
+GO

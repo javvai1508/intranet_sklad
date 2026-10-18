@@ -1,0 +1,29 @@
+-- Snapshot Helios002.zip, 2026-10-18; nejde o automatickou migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TRIGGER [dbo].[ht_CisKoduPDP] ON [dbo].[TabCisKoduPDP]
+FOR INSERT, UPDATE
+AS
+SET NOCOUNT ON
+DECLARE @ErrStr NVARCHAR(2000)
+IF UPDATE(KodZbozi)
+BEGIN
+IF EXISTS(
+SELECT *
+FROM TabCisKoduPDP AS C
+JOIN Inserted      AS I ON I.ID = C.ID
+WHERE EXISTS(
+SELECT *
+FROM TabCisKoduPDP AS D
+WHERE D.ID <> C.ID
+AND D.KodZbozi = C.KodZbozi))
+BEGIN
+ROLLBACK
+SET @ErrStr = dbo.hf_FormatError(71779, '')
+RAISERROR(@ErrStr, 16, 1)
+RETURN
+END
+END
+GO

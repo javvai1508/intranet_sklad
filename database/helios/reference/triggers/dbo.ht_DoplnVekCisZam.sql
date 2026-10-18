@@ -1,0 +1,21 @@
+-- Snapshot Helios002.zip, 2026-10-18; nejde o automatickou migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TRIGGER [dbo].[ht_DoplnVekCisZam] ON [dbo].[TabCisZam] FOR UPDATE AS
+IF UPDATE(DatumNarozeni)BEGIN
+SET NOCOUNT ON
+DECLARE @IDZam INT, @IDMzdObd INT, @Stari INT
+DECLARE c CURSOR LOCAL FAST_FORWARD FOR
+SELECT Z.ZamestnanecId,Z.IdObdobi FROM TabZamPer AS Z JOIN INSERTED AS i ON Z.ZamestnanecId=i.ID
+OPEN c
+WHILE 1=1 BEGIN
+FETCH NEXT FROM c INTO @IDZam,@IDMzdObd
+IF @@FETCH_STATUS<>0 BREAK
+EXEC hp_VekZamestnance @IDZam,@IDMzdObd,@Stari OUT
+UPDATE TabZamPer SET VekZam=@Stari WHERE ZamestnanecId=@IDZam AND IdObdobi=@IDMzdObd
+END
+DEALLOCATE c
+END
+GO

@@ -1,0 +1,644 @@
+{
+  "source": "Helios002.zip / Helios002.sql",
+  "source_sha256": "476c0ed628d71cc1396038cd4855c34d00a9530a7d7fe8e2caa3624038290d02",
+  "export_date": "2026-10-18",
+  "application_base": "169d4a8d7d39d6fe604b82494f7758b5e1563959",
+  "objects": [
+    {
+      "path": "procedures/dbo.hpx_agrafa_insert_polozky_oz.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_insert_polozky_oz",
+      "sha256": "301a6bdbb24a807bc7f354da4159ff7f23a87977e440b70181f90e734e1f78a0"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_skl_dokl_prevod_do_prod.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_dokl_prevod_do_prod",
+      "sha256": "494cc92a912b48f89e4b822a56a776d0c9d205af478ca9f6f53437c7382ae742"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_skl_dokl_pridej_paletu.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_dokl_pridej_paletu",
+      "sha256": "6466736eff178661c714b131f811428d15c1078154b90646efdcb00c446d360d"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_skl_dokl_priprav_paletu.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_dokl_priprav_paletu",
+      "sha256": "e586559c3863d10374c98424f5c864b29de4de865d97ac1c36776999a17fbb04"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_skl_prepoc_doklad.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_prepoc_doklad",
+      "sha256": "02d030bd4aa1b749baabc0044fd082a9440160a19a29e5f6a70e716ef8a9268e"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_sklad_uzavrit_vydej.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_sklad_uzavrit_vydej",
+      "sha256": "98337b7a937f32d97f95d1a660e0be774a2904d6195005edeb32f2bacc301858"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_sklad_uzavrit_vydej_priprava",
+      "sha256": "a86fe89b4314f22779023da888a1f3187050b1bd9f1069e6704639e32281a135"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet",
+      "sha256": "a44ffde880bddfb3cb54c0ba1e970e1c56887e49929f9c310a0be1421e80547b"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_vyr_odved_vc.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_vyr_odved_vc",
+      "sha256": "fcd6ce93825f23a930cde1b93d788c80d1a76393c05d191b21fdba8c34795d99"
+    },
+    {
+      "path": "procedures/dbo.hpx_agrafa_vyr_odvedeni_vc_tablet.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_vyr_odvedeni_vc_tablet",
+      "sha256": "91ab02db61c918b2d7ab61ed78eb63a64d63345c7fb9d4ad81dcf289ff0f908d"
+    },
+    {
+      "path": "reference/functions/dbo.hf_FormatError.sql",
+      "kind": "FUNCTION",
+      "object": "dbo.hf_FormatError",
+      "sha256": "4a25c3f32cc3a7a4056be6a8c1f87f99825788e67a5d56474857908050576f04"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_CopyExtAtributy.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_CopyExtAtributy",
+      "sha256": "e9c0369f37edef2bc90079e4ee5340999fde6a73987c71bd60029834ec58bbdc"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_DotahniNabidkovouCenuNew.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_DotahniNabidkovouCenuNew",
+      "sha256": "bb5fb474568d61421bf44d774649bf68e2c36f3bc2ac610c9d26f648f7a77719"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_DotahniPopisy.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_DotahniPopisy",
+      "sha256": "2bff8a4ca221967989afe8be5b4fe83da2bf2ff65eedbb4ec9536fa375815acc"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_EET_Vrat_Druh_a_DicPoverujiciho.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_EET_Vrat_Druh_a_DicPoverujiciho",
+      "sha256": "43ca6ebe6f2e850daeedc60e9669ef30d6b737e4dbef84addf62fb265b472e72"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_EvidenceOperace.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_EvidenceOperace",
+      "sha256": "629677dd5cd46ff1f046e7e93c98ed76c2fea16bc720bc03fc989975ab6c9cd8"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_GetSazbuDPH.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_GetSazbuDPH",
+      "sha256": "679ba93f5059e5f3c03c1dcab34073c44cc0c04c1f9bd40b27cc79799cfde378"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_HodnotyProPolozkuZCeniku.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_HodnotyProPolozkuZCeniku",
+      "sha256": "6b79ccc3102329adfd40c0e31268c9b02d3ddbfd7628a00c90e23a1a7e1f194b"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_InsertHlavickyOZ.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_InsertHlavickyOZ",
+      "sha256": "17280b9d994306fd49fca49972600f2206fe1ac62978f47cf94704d47901ddd3"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_OZGetDanKlicPolo.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_OZGetDanKlicPolo",
+      "sha256": "bd5cde86146e52240923aaeb3af730570fda660b5e997be0bb3f0ac2c0ae01c3"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_OdvedeniPrikazuNew.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_OdvedeniPrikazuNew",
+      "sha256": "3b9c3fd13f2619e33cdeae3ef501d5054656e25a716f3b700c52c076253274a4"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_OsetriPohybySD.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_OsetriPohybySD",
+      "sha256": "0a7fe528b4ef8b6d0b8a9d9ba3e6d9d61888623c3d2fc26672e9e0c9ca671fee"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_PrepoctiDleMJ.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_PrepoctiDleMJ",
+      "sha256": "5f4ac323aad5d362cdf8ad5fd3c678b31aa722917b120fcc1417ac64388513c7"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_Realizuj_Prijem.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_Realizuj_Prijem",
+      "sha256": "7972b8b37a94c9564dc52e80ea489e89ab0b272eb9fc3d0eb2192cf4b5213308"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_Realizuj_Vydej.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_Realizuj_Vydej",
+      "sha256": "1d8090712e9314b8f192f8e85da13e92b4239e74960416fc4d547987481f7aa3"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_TestSazbuDPH.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_TestSazbuDPH",
+      "sha256": "aa7d2dd1a9cef590f77bfd30a2b5b4a49d8fc67417327f6aff88f17071f7657f"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_VratJC.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_VratJC",
+      "sha256": "c7e8fb0f5de1e693465659e6a787d69320b873a9af3aab7c5235c65f67977a30"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_VypCenOZPolozek_IDDokladu.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_VypCenOZPolozek_IDDokladu",
+      "sha256": "e0523d46364c6302f9b9fa3f6f65b46b6d4297bd7127147983280a0d39c68c24"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_VypCenOZPolozek_IDPolozky.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_VypCenOZPolozek_IDPolozky",
+      "sha256": "e9d6ac3e5acffd9a9660076b8f685051db75d47b4b090b2c5fdbc3f21a687c42"
+    },
+    {
+      "path": "reference/procedures/dbo.hp_ZjistiVztahMJ.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_ZjistiVztahMJ",
+      "sha256": "2477995c02957012d8be745c67d1b0f08d9be3f7f906b650f5a1323347bea846"
+    },
+    {
+      "path": "reference/tables/dbo.TabBarCodeZbo.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabBarCodeZbo",
+      "sha256": "5aa61f7c171905b1d2e5561c5cf42702a19d57980497953460371e64f93b295e"
+    },
+    {
+      "path": "reference/tables/dbo.TabCisKoduPDP.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabCisKoduPDP",
+      "sha256": "5cf4428e989ab6ce33598aec081d408d2d01559b5d6d7f28d1373f937d75f678"
+    },
+    {
+      "path": "reference/tables/dbo.TabCisOrg.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabCisOrg",
+      "sha256": "075aebfa992b8c4504f646235124edb6e3c25327b61caeb6623b61ed9744c75e"
+    },
+    {
+      "path": "reference/tables/dbo.TabCisZam.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabCisZam",
+      "sha256": "d73a4f1e2bd21ff3c5ab998f7f2f03527262935c26764bad28f8c2e4de4783e7"
+    },
+    {
+      "path": "reference/tables/dbo.TabCisZam_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabCisZam_EXT",
+      "sha256": "ab8228558657bda456379dd845f9b74fa2c3e962b6de168cead190db7b03d106"
+    },
+    {
+      "path": "reference/tables/dbo.TabDICOrg.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDICOrg",
+      "sha256": "88a37089f72c12f2bf5b23de9f9d12db9665c10b3cf3131b0b2b28d905cd6ad5"
+    },
+    {
+      "path": "reference/tables/dbo.TabDokZboDodatek.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDokZboDodatek",
+      "sha256": "408c04cadc10a546b37a8c2ab4a36a6a55a3d46b34c7480bd2b84db71d980781"
+    },
+    {
+      "path": "reference/tables/dbo.TabDokladyZbozi.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDokladyZbozi",
+      "sha256": "ec6fc3857ee5679221b98e635a2f44ad2503d903f5b080097acb0dcae61930c9"
+    },
+    {
+      "path": "reference/tables/dbo.TabDokladyZbozi_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDokladyZbozi_EXT",
+      "sha256": "9a6e6634eb280195457abcaa05a646a3c103f80f1b7a41d3666de5cc6aca6741"
+    },
+    {
+      "path": "reference/tables/dbo.TabDokumVazba.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDokumVazba",
+      "sha256": "077e112c605e231f350b5094e32fc045bd9c71924ab97526407eee369ccbfbfb"
+    },
+    {
+      "path": "reference/tables/dbo.TabDruhDokZbo.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabDruhDokZbo",
+      "sha256": "4f0cf1c1993f9552c100bcdea21b8ea3021e6bb90204eccf04f31bd63bf6d655"
+    },
+    {
+      "path": "reference/tables/dbo.TabHGlob.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabHGlob",
+      "sha256": "b76e2471b9035f4417a06ca4565e461d08cb3901ec04990565aea408504f6b95"
+    },
+    {
+      "path": "reference/tables/dbo.TabInterniHlasky.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabInterniHlasky",
+      "sha256": "6484d9b63f72a2a85fbbad195244a197351acc78d7137c99b84ff3238cd98b5d"
+    },
+    {
+      "path": "reference/tables/dbo.TabJC.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabJC",
+      "sha256": "a18be0730ef12006f4405b00f1cbc581dcaf66c5c801c9f30f7a442f3b7bab28"
+    },
+    {
+      "path": "reference/tables/dbo.TabKmenZbozi.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabKmenZbozi",
+      "sha256": "d34dad922d4aa14b5b978d144f85b699edcfc129180da9ca012c4a414d7251fd"
+    },
+    {
+      "path": "reference/tables/dbo.TabKmenZbozi_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabKmenZbozi_EXT",
+      "sha256": "80f6989c88d74cec0b9d4e14f9f7a4f551dc1220b762a3cc9db0390d74e100fa"
+    },
+    {
+      "path": "reference/tables/dbo.TabPohybyZbozi.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPohybyZbozi",
+      "sha256": "cdbb7cb2f5e3e4346ab78f174a946a1d13b889c94aad82e27bb1281a2cb3bf61"
+    },
+    {
+      "path": "reference/tables/dbo.TabPohybyZboziSD.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPohybyZboziSD",
+      "sha256": "0b69ddc38ac977d854df9102628c5d9723cdb1880624ffb8dd3b0c105cf70a4b"
+    },
+    {
+      "path": "reference/tables/dbo.TabPohybyZbozi_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPohybyZbozi_EXT",
+      "sha256": "871b9d72a54a8531ab8cc47a4259fc4e38526fa7f23bcf66d5878f5b801c9607"
+    },
+    {
+      "path": "reference/tables/dbo.TabPrKVazby.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPrKVazby",
+      "sha256": "b24ac9aeb2d322284d64e8f913d4729fa11d960d56f8343eb4d81ca7f56b638d"
+    },
+    {
+      "path": "reference/tables/dbo.TabPrPostup.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPrPostup",
+      "sha256": "8a07e43f40a1c527b97df7974035ef4821a2537d683f5bdfbee130fd26c1e202"
+    },
+    {
+      "path": "reference/tables/dbo.TabPrikaz.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPrikaz",
+      "sha256": "08bd1a3a0a70df91206b3f1dc9982f0d564a88f1c701d422a86985e384a774aa"
+    },
+    {
+      "path": "reference/tables/dbo.TabPrikaz_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabPrikaz_EXT",
+      "sha256": "50472023236b10498e99830358b361768a97ea0c65a538ee340a099943fa1d15"
+    },
+    {
+      "path": "reference/tables/dbo.TabRadyPrikazu.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabRadyPrikazu",
+      "sha256": "039102d48becf43620c77f0118b85a1fa2e18781cfb52611772f853e6efb6a58"
+    },
+    {
+      "path": "reference/tables/dbo.TabSazbyDPH.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabSazbyDPH",
+      "sha256": "cb45d66fe9ea473a394a1465e248c731598bd80d71bbfe8516ad1884c8ec8c8f"
+    },
+    {
+      "path": "reference/tables/dbo.TabSozNa.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabSozNa",
+      "sha256": "8ff159ead3237d49c6df1c23281ffb97bca8a9397a0a1108b304e625504b9c0c"
+    },
+    {
+      "path": "reference/tables/dbo.TabStavSkladu.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabStavSkladu",
+      "sha256": "14de2c47010d88acdaf92a434cec3bd2072c48fa004a61975f5e8eb3ce58457a"
+    },
+    {
+      "path": "reference/tables/dbo.TabUmisteniPrijem.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabUmisteniPrijem",
+      "sha256": "715fc1a05477ae2b0cdc84bc5c941cd0a290e5a2167f951afb1f86f2397eb8c2"
+    },
+    {
+      "path": "reference/tables/dbo.TabVStavUmisteni.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVStavUmisteni",
+      "sha256": "f37d920b19aecb20d1df5d968e73b488516741a6b3e504f380f903e249468b6c"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCK.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCK",
+      "sha256": "d4c678e864257e3ad2ce49b150af6ee137aed03c57e03a84386204b7bfdef2c7"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCK_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCK_EXT",
+      "sha256": "6e1ef5645cb5e823b0addb2fb3deacdd5ac6bc52b34232af66ef53d8d95a5501"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCP.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCP",
+      "sha256": "d72505f2664535fd9ed94af4cc99fc43440a94662248e5240ffa67a53f168a0d"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCP_EXT.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCP_EXT",
+      "sha256": "64627aea4be8b78ac3c6c1336e2971838673778fd820a1c886131d259b36bfed"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCS.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCS",
+      "sha256": "390904175d52741e2dbdab22ad2afcc1565ae6cf1504cd516d61529469a2332c"
+    },
+    {
+      "path": "reference/tables/dbo.TabVyrCisPrikaz.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabVyrCisPrikaz",
+      "sha256": "56b66f48d1954febcba41b6c9f1756a0c558a928b26f5917b183a7cef0807c0b"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabCisZam_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabCisZam_ASOL_Log",
+      "sha256": "11953ea56f3249f92d3c0727517323794cb1e7ed64acfa4ef6739bcc025a8071"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabDokZboDodatek_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabDokZboDodatek_ASOL_Log",
+      "sha256": "20648aa7f65d50f01c12d75ac4f038cf822251e88ea5c9277caadcba4d27de8f"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabDokladyZbozi_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabDokladyZbozi_ASOL_Log",
+      "sha256": "ffd7ead9463e860ce9481e7321b05eff085ec098294d558153132c481c231e07"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabKmenZbozi_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabKmenZbozi_ASOL_Log",
+      "sha256": "f5b89cc9f1553624021336493a4cb37e54ba9171a975b3d62faf4dc710c44ef3"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabKmenZbozi_EXT_PDP.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabKmenZbozi_EXT_PDP",
+      "sha256": "d24f7217db35315cde5dccfc675f487607ab7848c307f1b82eac36808fa2ea93"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabPrikaz_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabPrikaz_ASOL_Log",
+      "sha256": "2b6e31a993085ad625863989a17cb39a2789aedf835ff8ed1336f7f2145d6984"
+    },
+    {
+      "path": "reference/triggers/dbo.et_TabRadyPrikazu_ASOL_Log.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.et_TabRadyPrikazu_ASOL_Log",
+      "sha256": "8192c7028d487df63a6403c9feba1b807cd4d0df7d6bf32ca3249e3a5c9ab193"
+    },
+    {
+      "path": "reference/triggers/dbo.hp_VynutKontroluStrukturyDB.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.hp_VynutKontroluStrukturyDB",
+      "sha256": "eedfb31606b48858c81cbb20b166ccad435e79c33b111f425dec608f1f525622"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_BarCodeZbo_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_BarCodeZbo_AVAModel_Change",
+      "sha256": "35ee471932dd34029d31a840b887406e680b2954797f539f782ffeff16afbbb3"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisKoduPDP.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisKoduPDP",
+      "sha256": "943c703b5ff304e4e41c8695b827a4768f27d28a637f64d8f29cd9ea93c2c23b"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisOrg_suma.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisOrg_suma",
+      "sha256": "7d5d1998ff0edede67c56eb1bfcfa29ba7cc2bf5a7bb2d32632f2aa4ed46302c"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZamCizinecDoklady.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZamCizinecDoklady",
+      "sha256": "8cae0d2b295c1d5c6e2e044d15044145b6f960e1f5ba31b4a0530553e31ff0f1"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZamLogZmenProSocPoj.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZamLogZmenProSocPoj",
+      "sha256": "73f99cfab4946f0a47c31cceab873fd3f864d63eafa4c28154fa1cddd3e0eda9"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZamPropisUdaju.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZamPropisUdaju",
+      "sha256": "bf3686278c9dbd2a7306d262e5abecc8b6a1fd235fbf8f42be44d9b72bed844c"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZamVyrazeni.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZamVyrazeni",
+      "sha256": "388a75f89ac925c99ede03ed225d98bd331d36f92db4ac4cb99efd66c4d05920"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZamZacistiUchazece.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZamZacistiUchazece",
+      "sha256": "04ae243a2e43403958a732fc39ab579db2d3727f91df81954901439fdc79f88a"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_CisZam_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_CisZam_AVAModel_Change",
+      "sha256": "838c8365fd978dd98837bd2da1c7017e4708c431ad136dc899504f371b301933"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_DokModify.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_DokModify",
+      "sha256": "ba1c388f406525ee6d630e08cc4281333274e11786813dbf6cd8fa42b8550e7f"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_DoplnVekCisZam.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_DoplnVekCisZam",
+      "sha256": "036200b3c601de70f1374187828570be571fede2f5cff49f2ea277e70627b904"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_Hlidej.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_Hlidej",
+      "sha256": "0b5b465a09d5ac88d992c3a8cbc5ac7e095fa5460641b3e2ced50c1bf63fb4db"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_KmenZbozi_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_KmenZbozi_AVAModel_Change",
+      "sha256": "52df476cf16fcd9840fb8a0146f2533c1a5c98b27efb920d97351d2f8c064a67"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_ModifyDIC.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_ModifyDIC",
+      "sha256": "eaa6f282f4a51a928abf09bf36209c10d5b241617cbff62f6893c16b9eabe93b"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_Modify_StavSkladu.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_Modify_StavSkladu",
+      "sha256": "50a9707edd1722a28d34c92337283dafdaf32816249f7ba384a6b3606cc5cdd9"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_NovaMzdovaVeta2.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_NovaMzdovaVeta2",
+      "sha256": "66029215cab14df000207bd62d809cabc8d428149fe95f257b4e5c04d892e73d"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_PohybyZbozi_Modify.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_PohybyZbozi_Modify",
+      "sha256": "9876f8022581b6832b3dbf4d6b3dbcd97d9690bf02a3ff665e962fc63cdcc0b1"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_PrKVazby_insert_update_delete.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_PrKVazby_insert_update_delete",
+      "sha256": "75ffe8f5115c3ea8197cbedb5f782e7680b4edc601faef9ea3a89f1d127dfa7c"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_PrKVazby_insert_update_delete_2.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_PrKVazby_insert_update_delete_2",
+      "sha256": "c21c3c57187973de7d43741c7bda07482812716c9b4f9851f9e442c6b4b91874"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_PrPostup_insert_update_delete.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_PrPostup_insert_update_delete",
+      "sha256": "6679c09a97a13ddc6e0dd32689f06ec2878a709765ec058cf66301a335e73a36"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_Prikaz_insert_update_delete.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_Prikaz_insert_update_delete",
+      "sha256": "3d87f2ff9433b7de873b62e9dcbf45f446a9797b3a34442b8937f378439370dd"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_SOzNa.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_SOzNa",
+      "sha256": "e41cf761f6327ac6c2f226416fae0190ef71f8937e3bf5693f4488504c960b3d"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_SazbyDPH.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_SazbyDPH",
+      "sha256": "106c36cd412fb13673d63b09b8a89a24a82c32f45699267fc50ab50f94f978ac"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabDokumVazba_ID.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabDokumVazba_ID",
+      "sha256": "ef3b1afe8f7691ba9e2454781b10b7366b2ce3e343c7f59aac4da554859f23df"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabDruhDZ_Trigger.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabDruhDZ_Trigger",
+      "sha256": "453953ffcc10ec3f254ee6bd4597645f9ca1472a382655de216752c39f65a9f2"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabVStavUmisteni_IUD.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabVStavUmisteni_IUD",
+      "sha256": "ff8d9a8290ac2116db4452e6797f20fb861b6ac8191a67c2f32ab06ba27702b6"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabVyrCK.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabVyrCK",
+      "sha256": "0db4b2035f4f008a73f3148cfb32ce938279dc130c7b230b5971633e6787a8e0"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabVyrCP.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabVyrCP",
+      "sha256": "aaf69225fca17cd74199c06a58edcdb22afdf8e0064a1c80952449e78718accb"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_TabVyrCS.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_TabVyrCS",
+      "sha256": "6bbcfab772a3c1be15fbccb39e20c056fb2fee7f9c530a7cd35295c50ad0eeb0"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_UmistPrijemInUpDel.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_UmistPrijemInUpDel",
+      "sha256": "e5f587ebab3705f3ea33146a6c5cb0fa49c49d98d15d01ba8979e3d5d3af9f12"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_VyrCK_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_VyrCK_AVAModel_Change",
+      "sha256": "31b46fbbae25997b3b9dbe4d035db07c712c48660b654f829cd7e686ac229579"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_modi_BarCodeZbo.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_modi_BarCodeZbo",
+      "sha256": "89cafba7cda508c07aa0ae2cb0ed7d6c5add7457a8bd256027b35778696a3939"
+    },
+    {
+      "path": "reference/triggers/dbo.ht_modi_kmenzbozi.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_modi_kmenzbozi",
+      "sha256": "79736c865aff32baf88da36b960f89a36978f02599617281059a98920e920a53"
+    }
+  ]
+}
