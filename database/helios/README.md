@@ -104,3 +104,13 @@ Tisk a realizaci provádí uživatel ručně stejně jako u ostatních převodů
 Nejsou potřeba další databázové sloupce ani migrace navíc k `20261020_loukov_return.sql`. Záznamy potvrzení zůstávají na původních výdejkách v existujících EXT sloupcích. Při nasazení aktualizovat také `config/services.neon` a vymazat cache Nette. Staré adresy `LoukovReceipt:default` a `LoukovReceipt:showReceipt` přesměrují na společnou obrazovku; existující session výběru je zachovaná.
 
 Ověření zahrnuje seznam obou směrů a filtr každého cíle, výběr číslem i ze seznamu, potvrzení a uzavření ve skladu `00100308` i `00100304`, odmítnutí cizí palety/dokladu a neměnnost uzavřené kontroly. Po potvrzení příjmu se má odblokovat pouze příslušný směr výdeje.
+
+## Převody blokovaných skladových a kmenových karet
+
+Při přesunu existující zásoby mezi sklady se smí použít i blokovaná skladová nebo kmenová karta. Procedura `hpx_agrafa_skl_dokl_pridej_paletu` proto při založení položky převodky předává do `hpx_agrafa_insert_polozky_oz` parametr `@PovolitBlokovane = 1`.
+
+V cílové databázi Heliosu spustit [migrations/20261020_transfer_allow_blocked.sql](migrations/20261020_transfer_allow_blocked.sql). Skript mění pouze proceduru přidávání palety; je nezávislý na migracích založení hlavičky Loukova. PHP se kvůli této změně nemění. Výchozí hodnota `@PovolitBlokovane = 0` ve sdílené proceduře vložení položky a její ostatní volání zůstávají zachované.
+
+Platí pro převody používající tuto proceduru: do Schenkeru, do Loukova a z Loukova. Kontrola existence palety ve zdrojovém skladu, kladného dostupného množství, duplicity skenu a otevřeného stavu dokladu v aplikaci zůstává zachovaná. Samostatný převod do prodejny používá jinou proceduru a tato migrace jej nemění.
+
+Na testovací databázi ověřit přidání palety s blokovanou skladovou kartou i s blokovanou kmenovou kartou, doplnění druhé palety stejného výrobku a odmítnutí nedostupné nebo opakovaně načtené palety. Historické SQL snímky a jejich manifest zůstávají beze změny.
