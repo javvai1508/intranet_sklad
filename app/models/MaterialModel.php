@@ -6,6 +6,7 @@ class MaterialModel extends BaseModel {
 
     private const TRANSFERS = [
         'toSchenker' => ['source' => '00100304', 'series' => '372', 'target' => '00100303', 'receiptSeries' => '351', 'title' => 'Do Schenkeru'],
+        'fromLoukov' => ['source' => '00100308', 'series' => '381', 'target' => '00100304', 'receiptSeries' => '351', 'title' => 'Z Loukova'],
         'toLoukov' => ['source' => '00100304', 'series' => '384', 'target' => '00100308', 'receiptSeries' => '351', 'title' => 'Do Loukova'],
     ];
 

@@ -76,3 +76,25 @@ Kontrola otevřené výdejky `toLoukov` sleduje `_exp_schenker_datzprac IS NULL`
 Používají se existující sloupce z dodaného schématu; další SQL migrace není potřeba. Přístup účtu aplikace musí umožňovat SELECT/INSERT/UPDATE na uvedených EXT tabulkách. Jde o fyzickou kontrolu proti původní výdejce, nikoliv o vytvoření nebo realizaci účetní příjemky. Tisk a realizace zůstávají ruční.
 
 Před nasazením ověřit na testovací kopii Heliosu: příjem proti uzavřené i realizované výdejce; cizí a opakovaný sken; přerušení a pokračování; dvě čtečky; neúplné uzavření; změnu množství v Heliosu mezi načtením a uzavřením; blokování změn po uzavření a možnost založit další výdejku až po dokončení příjmu.
+
+## Převod z Loukova
+
+V nabídce skladu je volba **Převod z Loukova** (`fromLoukov`).
+
+| Parametr | Hodnota |
+|---|---|
+| Zdrojový sklad | `00100308` |
+| Řada výdejky / druh pohybu | `381` / `4` |
+| Cílový sklad | `00100304` |
+| Řada příjemky / druh pohybu | `351` / `0` |
+
+Volba sdílí založení a opětovné otevření výdejky, načítání palet, odebrání palety či položky a uzavření s ostatními převody. Dostupnost palety se kontroluje ve zdrojovém skladu z hlavičky dokladu. Otevřená výdejka se vyhledává samostatně podle skladu `00100308` a řady `381`. Po uzavření ve výchozím skladu lze založit další zpětný převod; čekání na `_exp_schenker_datzprac` zůstává pouze u směru **do Loukova**. Příjmová kontrola v Loukově nadále zpracovává jen směr do Loukova (řada `384`).
+
+### Nasazení zpětného převodu
+
+1. Ověřit v Heliosu výdejovou řadu `381` pro sklad `00100308` a cílový sklad `00100304` s příjmovou řadou `351`.
+2. V cílové databázi spustit [migrations/20261020_loukov_return.sql](migrations/20261020_loukov_return.sql). Skript nahrazuje celou definici procedury založení hlavičky a obsahuje i dřívější podporu převodu do Loukova, takže jej lze použít i bez předchozího spuštění `20261020_loukov.sql`. Po tomto skriptu již nespouštět starší migraci, která by podporu zpětného převodu odstranila.
+3. Nasadit aplikaci a vymazat cache Nette.
+4. Ověřit na testovací databázi založení výdejky řady `381`, načtení palety ze skladu `00100308`, odmítnutí palety z jiného skladu, odebrání, pokračování v rozpracované výdejce a uzavření. Ověřit i souběžně otevřené směry a následný ruční tisk a realizaci včetně správného cílového skladu příjemky.
+
+Tisk a realizaci provádí uživatel ručně stejně jako u ostatních převodů. Historické definice a předchozí migrace zůstávají zachované.

@@ -45,6 +45,11 @@ class MaterialPresenter extends BasePresenter
         $this->startTransfer('toLoukov');
     }
 
+    public function handleNewTransferFromLoukov(): void
+    {
+        $this->startTransfer('fromLoukov');
+    }
+
     private function startTransfer(string $type): void
     {
         $dispatches = $this->warehouseAction(fn() => $this->dataModel->checkDispatchOpen($type));
