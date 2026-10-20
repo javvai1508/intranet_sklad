@@ -122,9 +122,9 @@ class MaterialModel extends BaseModel {
      */
     public function checkDispatchOpen($dispatchType) {
         $settings = self::getTransferSettings($dispatchType);
-        // Loukov blocks a new dispatch until the destination check is completed,
+        // Both Loukov directions block a new dispatch until the destination check is completed,
         // including dispatches already closed or realised at the source warehouse.
-        $openCondition = $dispatchType === 'toLoukov'
+        $openCondition = in_array($dispatchType, ['toLoukov', 'fromLoukov'], true)
             ? 'doe._exp_schenker_datzprac IS NULL'
             : 'do.DatRealizace IS NULL AND doe._exp_dat_uzavreno IS NULL';
         $res = $this->db->query("SELECT "

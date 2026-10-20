@@ -158,8 +158,8 @@ $tests['transfer lookup separates Schenker and both Loukov directions'] = functi
         expect(str_contains($sql, 'do.RadaDokladu = ?') && str_contains($sql, 'do.IDSklad = ?'), 'Transfer lookup must filter series and source');
         expect($params[1] === ($params[0] === '381' ? '00100308' : '00100304'), 'Wrong source warehouse');
         if ($params[0] === '381') {
-            expect(str_contains($sql, 'do.DatRealizace IS NULL') && str_contains($sql, 'doe._exp_dat_uzavreno IS NULL'), 'Return remains open after source close');
-            expect(!str_contains($sql, '_exp_schenker_datzprac'), 'Return wrongly waits for Loukov reception');
+            expect(str_contains($sql, 'doe._exp_schenker_datzprac IS NULL'), 'Return must wait for destination receipt');
+            expect(!str_contains($sql, 'do.DatRealizace IS NULL') && !str_contains($sql, 'doe._exp_dat_uzavreno IS NULL'), 'Source close hides pending return receipt');
         }
         return [(object) ['ID' => (int) $params[0]]];
     });

@@ -142,7 +142,7 @@
         </div>
         {/if}
                 <div class="text-center">
-                    <a n:if="$dispatchType === 'toLoukov' && $dispatch->StavDispExp == 1" n:href="LoukovReceipt:default" class="btn btn-primary btn-lg m-1">Příjem v Loukově</a>
+                    <a n:if="($dispatchType === 'toLoukov' || $dispatchType === 'fromLoukov') && $dispatch->StavDispExp == 1" n:href="TransferReceipt:default" class="btn btn-primary btn-lg m-1">Kontrola příjmu</a>
                     <a n:href="default" class="btn btn-secondary btn-lg m-1"><i class="far fa-chevron-left"></i> Zpět</a>
                     {if $dispatch->StavDispExp == 1}
                         <span class="text-danger font-weight-bold">Uzavřeno: {$dispatch->DatUzavrenoExp}</span>
