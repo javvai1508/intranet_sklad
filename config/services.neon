@@ -4,6 +4,7 @@ services:
 	- App\Models\UserModel
 	- App\Forms\ReadBarCodeFormFactory
 	- App\Models\MaterialModel
+	- App\Models\LoukovReceiptModel
 	- App\Models\DeliveryNoteModel
 	- App\Models\ProductionModel
 
