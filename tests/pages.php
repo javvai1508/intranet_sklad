@@ -58,7 +58,7 @@ try {
     // Removed signal is rejected by Nette before any database write.
 }
 $html = page('default');
-checkPage(str_contains($html, 'TEST-001') && str_contains($html, '>Palety</a>'), 'Overview needs a real link to pallets');
+checkPage(str_contains($html, 'TEST-001') && (bool) preg_match('~<tr[^>]*class="clickable-row"[^>]*data-href="[^"]+"~', $html), 'Overview needs a clickable row leading to pallet detail');
 $html = page('itemDetail', ['itemId' => 5]);
 checkPage(str_contains($html, 'PAL-TEST') && str_contains($html, 'Test výrobek'), 'Detail must render without UmisteniKod');
 checkPage(str_contains($html, 'removeDeliveryNoteItemSN') && str_contains($html, 'Opravdu chcete odebrat tuto paletu'), 'Missing pallet removal');
