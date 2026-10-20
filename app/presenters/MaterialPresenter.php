@@ -35,46 +35,51 @@ class MaterialPresenter extends BasePresenter
         $this->template->nadpis = 'Sklad';
     }
 
-    /** !!!
-     * nová výdejka - převod do Schenkeru
-     */
-    public function handleNewTransferToSchenker()
-    { 
-        // kontrola, jestli tam výdejka už není
-        $dispatchsOpen = $this->dataModel->checkDispatchOpen('toSchenker');
-        if ($dispatchsOpen) {
-            if (count($dispatchsOpen) > 1) {
+    public function handleNewTransferToSchenker(): void
+    {
+        $this->startTransfer('toSchenker');
+    }
 
-                $this->flashMessage("Otevřeno více výdejek, nelze pokračovat!");
-                $this->redirect("Material:default");
-            } elseif (count($dispatchsOpen) == 1) {
-                $dispatchIdSess = $this->getSession('dispatch');
-                foreach ($dispatchsOpen as $dispatchOpen) {
-                    $dispatchIdSess->dispatchId = $dispatchOpen->ID;
-                }
-                $dispatchIdSess->dispatchType = 'toSchenker';
-                $this->flashMessage("Otevřená výdejka - nutno uzavřít!");
-                $this->redirect("Material:showDispatch");
-            }
+    public function handleNewTransferToLoukov(): void
+    {
+        $this->startTransfer('toLoukov');
+    }
+
+    private function startTransfer(string $type): void
+    {
+        $dispatches = $this->warehouseAction(fn() => $this->dataModel->checkDispatchOpen($type));
+        if ($dispatches === false) {
+            $this->redirect('Material:default');
         }
-        $res = $this->warehouseAction(fn() => $this->dataModel->openNewDispatch('toSchenker'));
-        if ($res && !empty($res["IDDoklad"])) {
-            $dispatchId = $res["IDDoklad"];
-
-            if ($dispatchId) {
-                // založit novou výdejku  a doplnit řádky
-                $dispatchIdSess = $this->getSession('dispatch');
-                $dispatchIdSess->dispatchId = $dispatchId;
-                $dispatchIdSess->dispatchType = 'toSchenker';
-
-                $this->redirect("Material:showDispatch");
-            } else {
-                $this->flashMessage("Chyba při založení výdejky");
-                $this->redirect("Material:default");
+        if (count($dispatches) > 1) {
+            $this->flashMessage('Otevřeno více výdejek, nelze pokračovat!', 'danger');
+            $this->redirect('Material:default');
+        }
+        if (count($dispatches) === 1) {
+            $id = reset($dispatches)->ID;
+            $document = $type === 'toLoukov' ? $this->dataModel->getDispatch($id) : null;
+            $this->flashMessage($document && (int) $document->StavDispExp === 1
+                ? 'Výdejka čeká na dokončení kontroly příjmu v Loukově.'
+                : 'Otevřená výdejka - nutno uzavřít!');
+        } else {
+            $result = $this->warehouseAction(fn() => $this->dataModel->openNewDispatch($type));
+            if (!$result || empty($result['IDDoklad'])) {
+                $this->flashMessage('Výdejku se nepodařilo založit.', 'danger');
+                $this->redirect('Material:default');
             }
-        }         
-        $this->flashMessage('Výdejku se nepodařilo založit.', 'danger');
-        $this->redirect('Material:default');
+            $id = $result['IDDoklad'];
+        }
+        $session = $this->getSession('dispatch');
+        $session->dispatchId = $id;
+        $session->dispatchType = $type;
+        $this->redirect('Material:showDispatch');
+    }
+
+    private function setTransferTemplate(?string $type): void
+    {
+        $this->template->isOutgoingTransfer = MaterialModel::isOutgoingTransfer($type);
+        $this->template->transferTitle = MaterialModel::isOutgoingTransfer($type)
+            ? MaterialModel::getTransferSettings($type)['title'] : '';
     }
 
     /** !!!
@@ -150,6 +155,7 @@ class MaterialPresenter extends BasePresenter
 
             $this->template->dispatchNr = $dispatch->ParovaciZnak;
             $this->template->dispatchType = $dispatchType;
+        $this->setTransferTemplate($dispatchType);
             $this->template->dispatch = $dispatch;
             $this->template->dispatchItems = $dispatchItems;
 
@@ -189,7 +195,7 @@ class MaterialPresenter extends BasePresenter
             }
             $serialNumber = substr($values->BarCode, 2, strlen($values->BarCode) - 2);
 
-            if ($dispatchType == 'toSchenker') {
+            if (MaterialModel::isOutgoingTransfer($dispatchType)) {
 
                 $serialNumberRow = $this->dataModel->checkSerialNumberOther($this->getSession('dispatch')->dispatchId, $serialNumber);
                 // kontroly na množství na skladě
@@ -251,6 +257,7 @@ class MaterialPresenter extends BasePresenter
         $this->template->dispatchItem = $dispatchItem;
         $this->template->dispatchItemSNs = $dispatchItemSNs;
         $this->template->dispatchType = $dispatchType;
+        $this->setTransferTemplate($dispatchType);
 
         $this->template->nadpis = 'Převodka: ' . $dispatch->ParovaciZnak;
         
@@ -264,7 +271,7 @@ class MaterialPresenter extends BasePresenter
     public function handleRemoveDispatchItemSN($itemId, $itemSNId)
     {
         $dispatchType = $this->getSession('dispatch')->dispatchType;
-        if ($dispatchType == 'toSchenker') {
+        if (MaterialModel::isOutgoingTransfer($dispatchType)) {
             $this->warehouseAction(fn() => $this->dataModel->removeDispatchItemSN($itemSNId, $this->getSession('dispatch')->dispatchId, $itemId));
         } else {
             $this->warehouseAction(fn() => $this->dataModel->removeDispatchItemSNPrepare($itemSNId, $this->getSession('dispatch')->dispatchId, $itemId));
@@ -280,7 +287,7 @@ class MaterialPresenter extends BasePresenter
     {
         $this->dispatchId = $this->getSession('dispatch')->dispatchId;
         $dispatchType = $this->getSession('dispatch')->dispatchType;
-        if ($dispatchType == 'toSchenker') {
+        if (MaterialModel::isOutgoingTransfer($dispatchType)) {
             $res = $this->warehouseAction(fn() => $this->dataModel->closeDispatch($this->dispatchId));
         } else {
             $res = $this->warehouseAction(fn() => $this->dataModel->closeDispatchPrepare($this->dispatchId));
@@ -305,7 +312,7 @@ class MaterialPresenter extends BasePresenter
     public function handleRemoveDispatchItem($itemId)
     {
         $id = $this->getSession('dispatch')->dispatchId;
-        $this->warehouseAction(fn() => $this->getSession('dispatch')->dispatchType === 'toSchenker'
+        $this->warehouseAction(fn() => MaterialModel::isOutgoingTransfer($this->getSession('dispatch')->dispatchType)
             ? $this->dataModel->removeDispatchItem($itemId, $id)
             : $this->dataModel->removeDispatchItemPrepare($itemId, $id));
         $this->redirect('Material:showDispatch');

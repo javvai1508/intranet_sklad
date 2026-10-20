@@ -4,7 +4,7 @@ require __DIR__ . '/bootstrap.php';
 $root = dirname(__DIR__);
 $container = createTestContainer();
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
-foreach (['Sign', 'Homepage', 'Material', 'DeliveryNote', 'Production'] as $name) {
+foreach (['Sign', 'Homepage', 'Material', 'LoukovReceipt', 'DeliveryNote', 'Production'] as $name) {
     $presenter = $factory->createPresenter($name);
     echo "PASS: presenter $name\n";
 }

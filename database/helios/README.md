@@ -35,7 +35,7 @@ Závislosti byly vybrány statickým rozborem aplikace a aktivního SQL. Volán�
 
 | Parametr | Do Schenkeru | Do Loukova | Do prodejny |
 |---|---|---|---|
-| Typ aplikace | `toSchenker` | plánovaný `toLoukov` | samostatná operace |
+| Typ aplikace | `toSchenker` | `toLoukov` | samostatná operace |
 | Zdrojový sklad | `00100304` | `00100304` | `00100304` |
 | Řada výdejky | `372` | `384` | `372` |
 | Druh pohybu výdejky | `4` | `4` (stejný postup jako Schenker) | `4` |
@@ -43,17 +43,36 @@ Závislosti byly vybrány statickým rozborem aplikace a aktivního SQL. Volán�
 | Řada příjemky | `351` | `351` | `351` |
 | Druh pohybu příjemky | `0` | `0` (stejný postup jako Schenker) | `0` |
 
-Schenker a prodejna jsou ověřené z exportovaných procedur. Sklady a řady Loukova zadal uživatel 18. 10. 2026; podpora Loukova dosud není v uloženém snímku procedury pro založení výdejky ani v PHP aplikaci implementována.
+Schenker a prodejna jsou ověřené z exportovaných procedur. Sklady a řady Loukova zadal uživatel 18. 10. 2026; podpora Loukova je implementovaná v PHP aplikaci a v migraci `migrations/20261020_loukov.sql`. Historický snímek v `procedures/` zůstává beze změny.
 
-U převodu do Schenkeru a plánovaného převodu do Loukova provádí tisk a realizaci uživatel ručně v Heliosu (potvrzeno 18. 10. 2026). Aplikace při uzavření volá `hpx_agrafa_sklad_uzavrit_vydej`, která přepočítá množství/ceny a nastaví `_exp_dat_uzavreno`, `_exp_dat_ktisku` a `_exp_dat_tisku`. Volání realizace je v této proceduře zakomentované. Samostatný převod do prodejny má jiný postup: jeho procedura realizuje výdejku a vytváří příjemku.
+U převodu do Schenkeru a převodu do Loukova provádí tisk a realizaci uživatel ručně v Heliosu (potvrzeno 18. 10. 2026). Aplikace při uzavření volá `hpx_agrafa_sklad_uzavrit_vydej`, která přepočítá množství/ceny a nastaví `_exp_dat_uzavreno`, `_exp_dat_ktisku` a `_exp_dat_tisku`. Volání realizace je v této proceduře zakomentované. Samostatný převod do prodejny má jiný postup: jeho procedura realizuje výdejku a vytváří příjemku.
 
-## Následující změna: Loukov
+## Nasazení převodu do Loukova
 
-- Přidat volbu a společnou obsluhu s převodem do Schenkeru v MaterialPresenteru a šablonách.
-- Rozlišovat otevřené doklady podle skladu a řady: Schenker `372`, Loukov `384`.
-- Doplnit `toLoukov` do procedury založení hlavičky s hodnotami uvedenými výše.
-- Zachovat ruční tisk a realizaci. Společné přidávání palet používá zdrojový sklad z hlavičky dokladu.
+1. V cílové databázi Heliosu ověřit sklad `00100308`, výdejovou řadu `384` pro druh pohybu `4` a příjmovou řadu `351` pro druh pohybu `0`. Konfigurace číselníků není součástí schématu bez dat.
+2. V SSMS spustit [migrations/20261020_loukov.sql](migrations/20261020_loukov.sql) v této databázi. Skript mění pouze proceduru založení hlavičky, nevytváří provozní doklady.
+3. Nasadit PHP aplikaci a vymazat cache Nette v `temp/cache`.
+4. Na testovací databázi otevřít současně Schenker a Loukov. Každá volba musí pokračovat ve vlastní rozpracované výdejce (řady `372` / `384`).
+5. Ověřit načtení palety, odmítnutí duplicitního skenu, odebrání palety, uzavření, ruční tisk a realizaci v Heliosu včetně návazné příjemky do správného skladu.
+
+Převody sdílejí zpracování načtení, odebrání i uzavření. Nový doklad se kontroluje podle zdrojového a cílového skladu, obou řad a druhů pohybu; při nesouladu se transakce vrátí zpět. Rozpracované doklady se vyhledávají podle řady a zdrojového skladu. Při více rozpracovaných výdejkách stejného typu se další doklad nezaloží.
+
+Původní SQL definice a kontrolní součty v `manifest.json` dokumentují export z 18. 10. 2026. Migrace je samostatná následná změna a není součástí tohoto historického manifestu. Pro návrat k původní aplikaci lze obnovit původní definici procedury ze snímku (jako ALTER PROCEDURE); již vytvořené doklady tím nejsou odstraněny.
 
 ## Pravidlo dodacích listů
 
 U dodacího listu nelze v aplikaci mazat celou položku ani hromadně odebírat všechny její palety. Lze odebírat pouze jednotlivé palety z otevřeného dokladu. Z aplikace byly odstraněny modelové metody pro hromadné odebrání i příslušný signál presenteru. Tím zaniká i odkaz této funkce na sloupec `_exp_mnozstvi_vc_pozad`, který dodaný export neobsahuje. Odebrání jednotlivé palety používá stávající opravenou metodu `removeDeliveryNoteItemSNInternal()`.
+
+## Kontrola příjmu v Loukově
+
+V nabídce skladu je samostatná volba **Příjem v Loukově** pro roli `sklad`. Výdejku lze vybrat ze seznamu nebo načíst/zadat její párovací znak (číslo výdejky). Seznam obsahuje pouze převody z `00100304` do `00100308`, řada výdejky `384`, příjemky `351`, které jsou uzavřené nebo realizované ve výchozím skladu a ještě nejsou zpracované v Loukově.
+
+Při načtení kódu palety s prefixem `00` se vyhledá právě jeden záznam palety na vybrané výdejce. Do `TabVyrCP_EXT._exp_schenker_datcas` se uloží `GETDATE()` a do `_exp_schenker_mnoz` se přesně překopíruje `TabVyrCP.Mnozstvi` v SQL, bez převodu na celé číslo. Cizí, duplicitně uvedená nebo již načtená paleta je odmítnuta. Množství se nepřebírá z prohlížeče. Palety se nepřidávají na jiné doklady a nemění se původní množství výdejky.
+
+Uzavření je možné jen u neprázdné výdejky po potvrzení všech palet, při shodě potvrzených množství s aktuálními množstvími palet a při shodě součtů palet s množstvím každé položky. Do `TabDokladyZbozi_EXT._exp_schenker_datzprac` se zapíše datum a čas uzavření kontroly. Uzavřená kontrola je pouze pro čtení. Každý zápis má transakci, společný zámek aplikace a opakované ověření stavu a příslušnosti dokladu; realizace výdejky ve výchozím skladu příjmové kontrole nebrání.
+
+Kontrola otevřené výdejky `toLoukov` sleduje `_exp_schenker_datzprac IS NULL`, tedy i výdejku již uzavřenou nebo realizovanou ve výchozím skladu. Dokud není dokončen příjem v Loukově, nelze založit další výdejku tohoto typu. Schenker zachovává původní podmínku otevření.
+
+Používají se existující sloupce z dodaného schématu; další SQL migrace není potřeba. Přístup účtu aplikace musí umožňovat SELECT/INSERT/UPDATE na uvedených EXT tabulkách. Jde o fyzickou kontrolu proti původní výdejce, nikoliv o vytvoření nebo realizaci účetní příjemky. Tisk a realizace zůstávají ruční.
+
+Před nasazením ověřit na testovací kopii Heliosu: příjem proti uzavřené i realizované výdejce; cizí a opakovaný sken; přerušení a pokračování; dvě čtečky; neúplné uzavření; změnu množství v Heliosu mezi načtením a uzavřením; blokování změn po uzavření a možnost založit další výdejku až po dokončení příjmu.

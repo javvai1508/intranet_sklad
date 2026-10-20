@@ -1,0 +1,27 @@
+{block content}
+<div class="content">
+    <h1>Příjem v Loukově – {$receipt->ParovaciZnak}</h1>
+    <h2>Potvrzené palety: {$confirmed} / {count($pallets)}</h2>
+    {if $receipt->CompletedAt === null}
+        {include '../components/readBarCodeForm.latte', form => readBarCodeForm}
+    {else}
+        <p class="text-success font-weight-bold">Kontrola uzavřena: {$receipt->CompletedAt|date:'d.m.Y H:i:s'}</p>
+    {/if}
+    <table class="table table-bordered table-striped mt-3">
+        <thead><tr><th>Paleta</th><th>Výrobek</th><th>Na výdejce</th><th>Potvrzeno</th><th>Načteno</th></tr></thead>
+        <tbody>
+            <tr n:foreach="$pallets as $pallet" n:class="$pallet->Confirmed ? table-success : table-warning">
+                <td>{$pallet->SerialNumber}</td>
+                <td>{$pallet->ProductName}</td>
+                <td>{$pallet->Quantity} {$pallet->MJ}</td>
+                <td>{$pallet->ReceivedQuantity ?? 0}</td>
+                <td>{if $pallet->ScannedAt !== null}{$pallet->ScannedAt|date:'d.m.Y H:i:s'}{else}Čeká na načtení{/if}</td>
+            </tr>
+            <tr n:if="!count($pallets)"><td colspan="5">Na výdejce nejsou žádné palety.</td></tr>
+        </tbody>
+    </table>
+    <p n:if="$receipt->CompletedAt === null && !$canFinish">Pro uzavření načtěte všechny palety z výdejky.</p>
+    <a n:href="default" class="btn btn-secondary">Změnit výdejku</a>
+    <a n:if="$receipt->CompletedAt === null && $canFinish" n:href="finishReceipt! $receipt->ID"
+       class="btn btn-success" data-nette-confirm-text="Uzavřít kontrolu příjmu této výdejky v Loukově?">Uzavřít kontrolu příjmu</a>
+</div>

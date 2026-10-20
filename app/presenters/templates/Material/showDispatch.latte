@@ -3,9 +3,9 @@
     {ifset $dispatch->ID}
             <div class="row delivery-note-header">
                 <div class="col-sm-12">
-                {if $dispatchType == 'toSchenker'}
+                {if $isOutgoingTransfer}
                     <div class="float-right delivery-note-status"><h1 class="text-danger">Počet palet: {$dispatch->PocetPalet}</h1></div>
-                    <h1>Do Schenkeru</h1> 
+                    <h1>{$transferTitle}</h1> 
                 {elseif $dispatchType == 'fromSchenker'}
                     <div class="float-right delivery-note-status"><h1 class="text-danger">Palety: {$dispatch->Priprava}/{$dispatch->PocetPalet}</h1></div>
                     <h1>Ze Schenkeru</h1> 
@@ -25,7 +25,7 @@
                     {/if}
                 </div>
             </div>
-        {if $dispatchType == 'toSchenker'}
+        {if $isOutgoingTransfer}
         <div class="delivery-note-content">
             <div class="row delivery-note-items">
                 <div class="col-sm-12">
@@ -142,6 +142,7 @@
         </div>
         {/if}
                 <div class="text-center">
+                    <a n:if="$dispatchType === 'toLoukov' && $dispatch->StavDispExp == 1" n:href="LoukovReceipt:default" class="btn btn-primary btn-lg m-1">Příjem v Loukově</a>
                     <a n:href="default" class="btn btn-secondary btn-lg m-1"><i class="far fa-chevron-left"></i> Zpět</a>
                     {if $dispatch->StavDispExp == 1}
                         <span class="text-danger font-weight-bold">Uzavřeno: {$dispatch->DatUzavrenoExp}</span>
