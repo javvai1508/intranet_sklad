@@ -21,5 +21,7 @@ jobs:
       - run: php tests/framework.php
       - run: php tests/pages.php
       - run: php tests/material.php
+      - run: php tests/loukov-receipt.php
+      - run: php tests/loukov-pages.php
       - run: node --check www/js/main.js
       - run: node tests/signals.js

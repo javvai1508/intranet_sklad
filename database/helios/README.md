@@ -62,3 +62,17 @@ Původní SQL definice a kontrolní součty v `manifest.json` dokumentují expor
 ## Pravidlo dodacích listů
 
 U dodacího listu nelze v aplikaci mazat celou položku ani hromadně odebírat všechny její palety. Lze odebírat pouze jednotlivé palety z otevřeného dokladu. Z aplikace byly odstraněny modelové metody pro hromadné odebrání i příslušný signál presenteru. Tím zaniká i odkaz této funkce na sloupec `_exp_mnozstvi_vc_pozad`, který dodaný export neobsahuje. Odebrání jednotlivé palety používá stávající opravenou metodu `removeDeliveryNoteItemSNInternal()`.
+
+## Kontrola příjmu v Loukově
+
+V nabídce skladu je samostatná volba **Příjem v Loukově** pro roli `sklad`. Výdejku lze vybrat ze seznamu nebo načíst/zadat její párovací znak (číslo výdejky). Seznam obsahuje pouze převody z `00100304` do `00100308`, řada výdejky `384`, příjemky `351`, které jsou uzavřené nebo realizované ve výchozím skladu a ještě nejsou zpracované v Loukově.
+
+Při načtení kódu palety s prefixem `00` se vyhledá právě jeden záznam palety na vybrané výdejce. Do `TabVyrCP_EXT._exp_schenker_datcas` se uloží `GETDATE()` a do `_exp_schenker_mnoz` se přesně překopíruje `TabVyrCP.Mnozstvi` v SQL, bez převodu na celé číslo. Cizí, duplicitně uvedená nebo již načtená paleta je odmítnuta. Množství se nepřebírá z prohlížeče. Palety se nepřidávají na jiné doklady a nemění se původní množství výdejky.
+
+Uzavření je možné jen u neprázdné výdejky po potvrzení všech palet, při shodě potvrzených množství s aktuálními množstvími palet a při shodě součtů palet s množstvím každé položky. Do `TabDokladyZbozi_EXT._exp_schenker_datzprac` se zapíše datum a čas uzavření kontroly. Uzavřená kontrola je pouze pro čtení. Každý zápis má transakci, společný zámek aplikace a opakované ověření stavu a příslušnosti dokladu; realizace výdejky ve výchozím skladu příjmové kontrole nebrání.
+
+Kontrola otevřené výdejky `toLoukov` sleduje `_exp_schenker_datzprac IS NULL`, tedy i výdejku již uzavřenou nebo realizovanou ve výchozím skladu. Dokud není dokončen příjem v Loukově, nelze založit další výdejku tohoto typu. Schenker zachovává původní podmínku otevření.
+
+Používají se existující sloupce z dodaného schématu; další SQL migrace není potřeba. Přístup účtu aplikace musí umožňovat SELECT/INSERT/UPDATE na uvedených EXT tabulkách. Jde o fyzickou kontrolu proti původní výdejce, nikoliv o vytvoření nebo realizaci účetní příjemky. Tisk a realizace zůstávají ruční.
+
+Před nasazením ověřit na testovací kopii Heliosu: příjem proti uzavřené i realizované výdejce; cizí a opakovaný sken; přerušení a pokračování; dvě čtečky; neúplné uzavření; změnu množství v Heliosu mezi načtením a uzavřením; blokování změn po uzavření a možnost založit další výdejku až po dokončení příjmu.

@@ -57,7 +57,10 @@ class MaterialPresenter extends BasePresenter
         }
         if (count($dispatches) === 1) {
             $id = reset($dispatches)->ID;
-            $this->flashMessage('Otevřená výdejka - nutno uzavřít!');
+            $document = $type === 'toLoukov' ? $this->dataModel->getDispatch($id) : null;
+            $this->flashMessage($document && (int) $document->StavDispExp === 1
+                ? 'Výdejka čeká na dokončení kontroly příjmu v Loukově.'
+                : 'Otevřená výdejka - nutno uzavřít!');
         } else {
             $result = $this->warehouseAction(fn() => $this->dataModel->openNewDispatch($type));
             if (!$result || empty($result['IDDoklad'])) {

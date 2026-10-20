@@ -121,13 +121,18 @@ class MaterialModel extends BaseModel {
      */
     public function checkDispatchOpen($dispatchType) {
         $settings = self::getTransferSettings($dispatchType);
+        // Loukov blocks a new dispatch until the destination check is completed,
+        // including dispatches already closed or realised at the source warehouse.
+        $openCondition = $dispatchType === 'toLoukov'
+            ? 'doe._exp_schenker_datzprac IS NULL'
+            : 'do.DatRealizace IS NULL AND doe._exp_dat_uzavreno IS NULL';
         $res = $this->db->query("SELECT "
                         . "do.ID, "
                         . "do.ParovaciZnak, "
                         . "doe._skl_token "
                         . "FROM TabDokladyZbozi do "
                         . "JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = ? AND do.IDSklad = ? AND do.DatRealizace IS NULL AND doe._exp_dat_uzavreno IS NULL", $settings['series'], $settings['source'])->fetchAll();
+                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = ? AND do.IDSklad = ? AND " . $openCondition, $settings['series'], $settings['source'])->fetchAll();
         return $res;
     }
 

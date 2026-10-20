@@ -1,0 +1,26 @@
+{block content}
+<div class="content">
+    <h1>Příjem v Loukově</h1>
+    <p>Vyberte výdejku nebo načtěte její číslo. Nabídka obsahuje výdejky odeslané do Loukova, u kterých ještě není uzavřená kontrola příjmu.</p>
+    <form n:name="selectDocumentForm" class="mb-3">
+        <div class="input-group">
+            {input number}
+            {input select}
+        </div>
+        <ul n:if="$form->hasErrors()" class="text-danger">
+            <li n:foreach="$form->getErrors() as $error">{$error}</li>
+        </ul>
+    </form>
+    <table class="table table-bordered table-striped">
+        <thead><tr><th>Výdejka</th><th>Datum</th><th></th></tr></thead>
+        <tbody>
+            <tr n:foreach="$documents as $document">
+                <td>{$document->ParovaciZnak}</td>
+                <td>{$document->DatPorizeni|date:'d.m.Y'}</td>
+                <td><a n:href="selectReceipt! $document->ID" class="btn btn-primary">Kontrola palet</a></td>
+            </tr>
+            <tr n:if="!count($documents)"><td colspan="3">Žádné výdejky nečekají na kontrolu příjmu.</td></tr>
+        </tbody>
+    </table>
+    <a n:href="Material:default" class="btn btn-secondary">Zpět do skladu</a>
+</div>
