@@ -60,7 +60,9 @@ function transferRedirect(callable $action): void {
 [, $html] = transferPage('default');
 transferCheck(str_contains($html, 'newTransferToLoukov') && str_contains($html, 'Převod do Loukova'), 'Missing Loukov choice');
 
-foreach (['toLoukov' => ['handleNewTransferToLoukov', 'Do Loukova'], 'toSchenker' => ['handleNewTransferToSchenker', 'Do Schenkeru']] as $type => [$handler, $title]) {
+transferCheck(str_contains($html, 'newTransferFromLoukov') && str_contains($html, 'Převod z Loukova'), 'Missing return transfer choice');
+
+foreach (['fromLoukov' => ['handleNewTransferFromLoukov', 'Z Loukova'], 'toLoukov' => ['handleNewTransferToLoukov', 'Do Loukova'], 'toSchenker' => ['handleNewTransferToSchenker', 'Do Schenkeru']] as $type => [$handler, $title]) {
     foreach ([0, 1, 2] as $count) {
         $session->remove();
         $model->calls = [];
@@ -98,4 +100,4 @@ foreach (['toLoukov' => ['handleNewTransferToLoukov', 'Do Loukova'], 'toSchenker
     transferCheck(end($model->calls) === ['close', 42] && !isset($session->dispatchId), 'Wrong close or session not cleared');
 }
 ob_end_clean();
-echo "PASS: Loukov and Schenker creation, resume, ambiguity, rendering, scans, removal and close\n";
+echo "PASS: Loukov outgoing, return and Schenker creation, resume, ambiguity, rendering, scans, removal and close\n";

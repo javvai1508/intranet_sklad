@@ -6,6 +6,7 @@ class MaterialModel extends BaseModel {
 
     private const TRANSFERS = [
         'toSchenker' => ['source' => '00100304', 'series' => '372', 'target' => '00100303', 'receiptSeries' => '351', 'title' => 'Do Schenkeru'],
+        'fromLoukov' => ['source' => '00100308', 'series' => '381', 'target' => '00100304', 'receiptSeries' => '351', 'title' => 'Z Loukova'],
         'toLoukov' => ['source' => '00100304', 'series' => '384', 'target' => '00100308', 'receiptSeries' => '351', 'title' => 'Do Loukova'],
     ];
 
@@ -121,9 +122,9 @@ class MaterialModel extends BaseModel {
      */
     public function checkDispatchOpen($dispatchType) {
         $settings = self::getTransferSettings($dispatchType);
-        // Loukov blocks a new dispatch until the destination check is completed,
+        // Both Loukov directions block a new dispatch until the destination check is completed,
         // including dispatches already closed or realised at the source warehouse.
-        $openCondition = $dispatchType === 'toLoukov'
+        $openCondition = in_array($dispatchType, ['toLoukov', 'fromLoukov'], true)
             ? 'doe._exp_schenker_datzprac IS NULL'
             : 'do.DatRealizace IS NULL AND doe._exp_dat_uzavreno IS NULL';
         $res = $this->db->query("SELECT "

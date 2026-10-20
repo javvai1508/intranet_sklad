@@ -153,22 +153,27 @@ $tests['delivery pallet removal keeps the document item'] = function () {
     expect($db->commits === 1 && $db->rollbacks === 0, 'Pallet removal must commit');
 };
 
-$tests['transfer lookup separates Schenker and Loukov'] = function () {
+$tests['transfer lookup separates Schenker and both Loukov directions'] = function () {
     $db = new TestDatabase(function ($sql, $params) {
         expect(str_contains($sql, 'do.RadaDokladu = ?') && str_contains($sql, 'do.IDSklad = ?'), 'Transfer lookup must filter series and source');
-        expect($params[1] === '00100304', 'Wrong source warehouse');
-        return [(object) ['ID' => $params[0] === '384' ? 384 : 372]];
+        expect($params[1] === ($params[0] === '381' ? '00100308' : '00100304'), 'Wrong source warehouse');
+        if ($params[0] === '381') {
+            expect(str_contains($sql, 'doe._exp_schenker_datzprac IS NULL'), 'Return must wait for destination receipt');
+            expect(!str_contains($sql, 'do.DatRealizace IS NULL') && !str_contains($sql, 'doe._exp_dat_uzavreno IS NULL'), 'Source close hides pending return receipt');
+        }
+        return [(object) ['ID' => (int) $params[0]]];
     });
     $m = model(App\Models\MaterialModel::class, $db);
     expect($m->checkDispatchOpen('toLoukov')[0]->ID === 384, 'Loukov opened Schenker document');
     expect($m->checkDispatchOpen('toSchenker')[0]->ID === 372, 'Schenker opened Loukov document');
+    expect($m->checkDispatchOpen('fromLoukov')[0]->ID === 381, 'Return opened the other direction');
     rejects(fn() => $m->checkDispatchOpen('unknown'));
-    expect(count($db->queries) === 2, 'Unknown type reached SQL');
+    expect(count($db->queries) === 3, 'Unknown type reached SQL');
 };
 $tests['transfer creation validates the procedure result and rolls back wrong settings'] = function () {
-    foreach (['toLoukov' => ['384', '00100308'], 'toSchenker' => ['372', '00100303']] as $type => [$series, $target]) {
+    foreach (['fromLoukov' => ['381', '00100308', '00100304'], 'toLoukov' => ['384', '00100304', '00100308'], 'toSchenker' => ['372', '00100304', '00100303']] as $type => [$series, $source, $target]) {
         foreach ([false, true] as $wrongTarget) {
-            $db = new TestDatabase(function ($sql, $params) use ($type, $series, $target, $wrongTarget) {
+            $db = new TestDatabase(function ($sql, $params) use ($type, $series, $source, $target, $wrongTarget) {
                 if (str_contains($sql, 'sp_getapplock')) return 0;
                 if (str_contains($sql, 'do.RadaDokladu = ?')) return [];
                 if (str_contains($sql, 'EXEC hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet')) {
@@ -177,7 +182,7 @@ $tests['transfer creation validates the procedure result and rolls back wrong se
                 }
                 if (str_contains($sql, 'SELECT ID FROM TabDokladyZbozi_EXT')) return 42;
                 if (str_contains($sql, 'AS StavDispExp')) return (object) [
-                    'DruhPohybuZbo' => 4, 'IDSklad' => '00100304', 'RadaDokladu' => $series,
+                    'DruhPohybuZbo' => 4, 'IDSklad' => $source, 'RadaDokladu' => $series,
                     'IdSkladPrevodu' => $wrongTarget ? 'incorrect' : $target,
                     'TypPrevodky' => '351', 'DruhPohybuPrevod' => 0,
                 ];
@@ -197,6 +202,23 @@ $tests['existing transfer prevents creating a second document'] = function () {
     $db = new TestDatabase(fn($sql) => str_contains($sql, 'sp_getapplock') ? 0 : [(object) ['ID' => 384]]);
     rejects(fn() => model(App\Models\MaterialModel::class, $db)->openNewDispatch('toLoukov'));
     expect(count($db->queries) === 2 && $db->rollbacks === 1, 'Duplicate transfer reached insert');
+};
+
+
+$tests['return scan uses the source warehouse of the document'] = function () {
+    $db = new TestDatabase(function ($sql, $params) {
+        if (str_contains($sql, 'SELECT IDSklad FROM TabDokladyZbozi')) {
+            expect($params === [42], 'Wrong document for source lookup');
+            return '00100308';
+        }
+        if (str_contains($sql, 'FROM TabVyrCS')) {
+            expect($params === ['123', '00100308'], 'Return scan checks a different warehouse');
+            return (object) ['IDVyrCis' => 7, 'Mnozstvi' => 10, 'MnozstviPoPrijmuAVydeji' => 10];
+        }
+        throw new Exception('Unexpected query: ' . $sql);
+    });
+    $m = model(App\Models\MaterialModel::class, $db);
+    expect($m->checkSerialNumberOther(42, '123')->IDVyrCis === 7, 'Return pallet not found');
 };
 
 foreach ($tests as $name => $test) { $test(); echo "PASS: $name\n"; }

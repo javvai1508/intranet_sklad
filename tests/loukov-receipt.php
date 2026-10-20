@@ -1,11 +1,11 @@
 <?php
 // Reuse the deterministic database double and baseline warehouse regressions.
 require __DIR__ . '/warehouse.php';
-require __DIR__ . '/../app/models/LoukovReceiptModel.php';
+require __DIR__ . '/../app/models/TransferReceiptModel.php';
 
 function receptionFixture(array $changes = []): array {
     $state = (object) array_merge([
-        'exists' => true, 'ready' => 1, 'completed' => null,
+        'documentId' => 42, 'exists' => true, 'ready' => 1, 'completed' => null,
         'pallets' => [(object) ['ID' => 7, 'SerialNumber' => '123', 'Quantity' => '1.250000',
             'ReceivedQuantity' => null, 'ScannedAt' => null, 'Confirmed' => 0]],
         'inconsistent' => false, 'extExists' => true, 'failInsert' => false, 'failFinish' => false,
@@ -13,7 +13,8 @@ function receptionFixture(array $changes = []): array {
     $db = new TestDatabase(function ($sql, $params) use ($state) {
         if (str_contains($sql, 'sp_getapplock')) return 0;
         if (str_contains($sql, ' AS CompletedAt')) {
-            expect(array_slice($params, 0, 4) === ['00100304', '384', '00100308', '351'], 'Wrong transfer scope');
+            expect(array_slice($params, 0, 8) === ['00100304', '384', '00100308', '351', '00100308', '381', '00100304', '351'], 'Wrong bidirectional scope');
+            expect(end($params) === $state->documentId, 'Receipt selected a different document');
             expect(str_contains($sql, 'WITH (UPDLOCK, HOLDLOCK)'), 'Mutation must lock document');
             return $state->exists ? (object) ['Ready' => $state->ready, 'CompletedAt' => $state->completed] : null;
         }
@@ -48,7 +49,7 @@ function receptionFixture(array $changes = []): array {
         }
         throw new Exception('Unexpected receipt SQL: ' . $sql);
     });
-    return [model(App\Models\LoukovReceiptModel::class, $db), $db, $state];
+    return [model(App\Models\TransferReceiptModel::class, $db), $db, $state];
 }
 foreach ([true, false] as $extExists) {
     [$m, $db, $state] = receptionFixture(['extExists' => $extExists]);
@@ -100,7 +101,7 @@ expect($db->rollbacks === 1, 'Unconfirmed completion committed');
 
 // Loukov remains pending after source close/realisation until destination completion.
 $db = new TestDatabase(function ($sql, $params) {
-    if ($params[0] === '384') {
+    if (in_array($params[0], ['384', '381'], true)) {
         expect(str_contains($sql, 'doe._exp_schenker_datzprac IS NULL'), 'Destination completion ignored');
         expect(!str_contains($sql, 'do.DatRealizace IS NULL') && !str_contains($sql, 'doe._exp_dat_uzavreno IS NULL'), 'Source close hides pending reception');
     } else {
@@ -110,5 +111,29 @@ $db = new TestDatabase(function ($sql, $params) {
 });
 $m = model(App\Models\MaterialModel::class, $db);
 $m->checkDispatchOpen('toLoukov');
+$m->checkDispatchOpen('fromLoukov');
 $m->checkDispatchOpen('toSchenker');
 echo "PASS: Loukov receipt scope, decimal confirmation, duplicates, missing EXT, completeness, rollback and lifecycle\n";
+
+// Both directions use identical confirmation and completion, scoped by document ID.
+[$m, $db, $state] = receptionFixture(['documentId' => 43]);
+expect($m->confirmPallet(43, '123') && $m->finish(43), 'Return receipt lifecycle failed');
+expect($state->completed !== null && $db->commits === 2, 'Return receipt not committed');
+
+$db = new TestDatabase(function ($sql, $params) {
+    expect(str_contains($sql, ' OR ') || str_contains($sql, 'OR ('), 'Scope must include both directions');
+    expect(array_slice($params, 0, 8) === ['00100304', '384', '00100308', '351', '00100308', '381', '00100304', '351'], 'Wrong route parameters');
+    expect(str_contains($sql, '_exp_schenker_datzprac IS NULL'), 'Completed receipts must be hidden');
+    if (count($params) === 9) {
+        expect(str_contains($sql, 'AND d.IdSkladPrevodu = ?'), 'Destination filter missing');
+        expect(in_array($params[8], ['00100308', '00100304'], true), 'Invalid destination bound');
+    }
+    return [];
+});
+$m = model(App\Models\TransferReceiptModel::class, $db);
+$m->getPendingDocuments();
+$m->getPendingDocuments('00100308');
+$m->getPendingDocuments('00100304');
+rejects(fn() => $m->getPendingDocuments('unknown'));
+expect(count($db->queries) === 3, 'Invalid destination reached SQL');
+echo "PASS: bidirectional receipt scope, return completion and destination filters\n";

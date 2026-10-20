@@ -63,16 +63,54 @@ Původní SQL definice a kontrolní součty v `manifest.json` dokumentují expor
 
 U dodacího listu nelze v aplikaci mazat celou položku ani hromadně odebírat všechny její palety. Lze odebírat pouze jednotlivé palety z otevřeného dokladu. Z aplikace byly odstraněny modelové metody pro hromadné odebrání i příslušný signál presenteru. Tím zaniká i odkaz této funkce na sloupec `_exp_mnozstvi_vc_pozad`, který dodaný export neobsahuje. Odebrání jednotlivé palety používá stávající opravenou metodu `removeDeliveryNoteItemSNInternal()`.
 
-## Kontrola příjmu v Loukově
+## Společná kontrola příjmu převodů
 
-V nabídce skladu je samostatná volba **Příjem v Loukově** pro roli `sklad`. Výdejku lze vybrat ze seznamu nebo načíst/zadat její párovací znak (číslo výdejky). Seznam obsahuje pouze převody z `00100304` do `00100308`, řada výdejky `384`, příjemky `351`, které jsou uzavřené nebo realizované ve výchozím skladu a ještě nejsou zpracované v Loukově.
+V nabídce skladu je společná volba **Kontrola příjmu převodů** (`TransferReceiptPresenter`, `TransferReceiptModel`) pro roli `sklad`. Seznam obsahuje nezkontrolované výdejky obou směrů: `00100304` → `00100308`, řada `384`, a `00100308` → `00100304`, řada `381`; v obou případech je příjmová řada `351`. Doklad musí být uzavřený nebo realizovaný ve zdrojovém skladu. Lze zobrazit oba sklady nebo filtrovat podle cílového skladu. Výdejku lze vybrat ze seznamu nebo načíst/zadat její párovací znak. Směr, zdroj a cíl jsou viditelné také v detailu kontroly. Číslo dokladu se vždy vyhledává v obou podporovaných směrech; při nejednoznačnosti se musí vybrat konkrétní doklad ze seznamu.
 
 Při načtení kódu palety s prefixem `00` se vyhledá právě jeden záznam palety na vybrané výdejce. Do `TabVyrCP_EXT._exp_schenker_datcas` se uloží `GETDATE()` a do `_exp_schenker_mnoz` se přesně překopíruje `TabVyrCP.Mnozstvi` v SQL, bez převodu na celé číslo. Cizí, duplicitně uvedená nebo již načtená paleta je odmítnuta. Množství se nepřebírá z prohlížeče. Palety se nepřidávají na jiné doklady a nemění se původní množství výdejky.
 
-Uzavření je možné jen u neprázdné výdejky po potvrzení všech palet, při shodě potvrzených množství s aktuálními množstvími palet a při shodě součtů palet s množstvím každé položky. Do `TabDokladyZbozi_EXT._exp_schenker_datzprac` se zapíše datum a čas uzavření kontroly. Uzavřená kontrola je pouze pro čtení. Každý zápis má transakci, společný zámek aplikace a opakované ověření stavu a příslušnosti dokladu; realizace výdejky ve výchozím skladu příjmové kontrole nebrání.
+Uzavření je možné jen u neprázdné výdejky po potvrzení všech palet, při shodě potvrzených množství s aktuálními množstvími palet a při shodě součtů palet s množstvím každé položky. Do `TabDokladyZbozi_EXT._exp_schenker_datzprac` se zapíše datum a čas uzavření kontroly v příslušném cílovém skladu. Uzavřená kontrola je pouze pro čtení. Každý zápis má transakci, společný zámek aplikace a opakované ověření stavu a příslušnosti dokladu; realizace výdejky ve výchozím skladu příjmové kontrole nebrání.
 
-Kontrola otevřené výdejky `toLoukov` sleduje `_exp_schenker_datzprac IS NULL`, tedy i výdejku již uzavřenou nebo realizovanou ve výchozím skladu. Dokud není dokončen příjem v Loukově, nelze založit další výdejku tohoto typu. Schenker zachovává původní podmínku otevření.
+Kontrola otevřené výdejky `toLoukov` i `fromLoukov` sleduje `_exp_schenker_datzprac IS NULL`, tedy i výdejku již uzavřenou nebo realizovanou ve zdrojovém skladu. Dokud není dokončen příjem v cílovém skladu, nelze založit další výdejku stejného směru. Oba směry se posuzují samostatně podle řady a zdrojového skladu. Schenker zachovává původní podmínku otevření.
 
 Používají se existující sloupce z dodaného schématu; další SQL migrace není potřeba. Přístup účtu aplikace musí umožňovat SELECT/INSERT/UPDATE na uvedených EXT tabulkách. Jde o fyzickou kontrolu proti původní výdejce, nikoliv o vytvoření nebo realizaci účetní příjemky. Tisk a realizace zůstávají ruční.
 
 Před nasazením ověřit na testovací kopii Heliosu: příjem proti uzavřené i realizované výdejce; cizí a opakovaný sken; přerušení a pokračování; dvě čtečky; neúplné uzavření; změnu množství v Heliosu mezi načtením a uzavřením; blokování změn po uzavření a možnost založit další výdejku až po dokončení příjmu.
+
+## Převod z Loukova
+
+V nabídce skladu je volba **Převod z Loukova** (`fromLoukov`).
+
+| Parametr | Hodnota |
+|---|---|
+| Zdrojový sklad | `00100308` |
+| Řada výdejky / druh pohybu | `381` / `4` |
+| Cílový sklad | `00100304` |
+| Řada příjemky / druh pohybu | `351` / `0` |
+
+Volba sdílí založení a opětovné otevření výdejky, načítání palet, odebrání palety či položky a uzavření s ostatními převody. Dostupnost palety se kontroluje ve zdrojovém skladu z hlavičky dokladu. Otevřená výdejka se vyhledává samostatně podle skladu `00100308` a řady `381`. Nový zpětný převod lze založit až po dokončení příjmové kontroly ve skladu `00100304`, podle `_exp_schenker_datzprac`. Společná příjmová kontrola zpracovává oba směry.
+
+### Nasazení zpětného převodu
+
+1. Ověřit v Heliosu výdejovou řadu `381` pro sklad `00100308` a cílový sklad `00100304` s příjmovou řadou `351`.
+2. V cílové databázi spustit [migrations/20261020_loukov_return.sql](migrations/20261020_loukov_return.sql). Skript nahrazuje celou definici procedury založení hlavičky a obsahuje i dřívější podporu převodu do Loukova, takže jej lze použít i bez předchozího spuštění `20261020_loukov.sql`. Po tomto skriptu již nespouštět starší migraci, která by podporu zpětného převodu odstranila.
+3. Nasadit aplikaci a vymazat cache Nette.
+4. Ověřit na testovací databázi založení výdejky řady `381`, načtení palety ze skladu `00100308`, odmítnutí palety z jiného skladu, odebrání, pokračování v rozpracované výdejce a uzavření. Ověřit i souběžně otevřené směry a následný ruční tisk a realizaci včetně správného cílového skladu příjemky.
+
+Tisk a realizaci provádí uživatel ručně stejně jako u ostatních převodů. Historické definice a předchozí migrace zůstávají zachované.
+
+### Přechod na společnou kontrolu
+
+Nejsou potřeba další databázové sloupce ani migrace navíc k `20261020_loukov_return.sql`. Záznamy potvrzení zůstávají na původních výdejkách v existujících EXT sloupcích. Při nasazení aktualizovat také `config/services.neon` a vymazat cache Nette. Staré adresy `LoukovReceipt:default` a `LoukovReceipt:showReceipt` přesměrují na společnou obrazovku; existující session výběru je zachovaná.
+
+Ověření zahrnuje seznam obou směrů a filtr každého cíle, výběr číslem i ze seznamu, potvrzení a uzavření ve skladu `00100308` i `00100304`, odmítnutí cizí palety/dokladu a neměnnost uzavřené kontroly. Po potvrzení příjmu se má odblokovat pouze příslušný směr výdeje.
+
+## Převody blokovaných skladových a kmenových karet
+
+Při přesunu existující zásoby mezi sklady se smí použít i blokovaná skladová nebo kmenová karta. Procedura `hpx_agrafa_skl_dokl_pridej_paletu` proto při založení položky převodky předává do `hpx_agrafa_insert_polozky_oz` parametr `@PovolitBlokovane = 1`.
+
+V cílové databázi Heliosu spustit [migrations/20261020_transfer_allow_blocked.sql](migrations/20261020_transfer_allow_blocked.sql). Skript mění pouze proceduru přidávání palety; je nezávislý na migracích založení hlavičky Loukova. PHP se kvůli této změně nemění. Výchozí hodnota `@PovolitBlokovane = 0` ve sdílené proceduře vložení položky a její ostatní volání zůstávají zachované.
+
+Platí pro převody používající tuto proceduru: do Schenkeru, do Loukova a z Loukova. Kontrola existence palety ve zdrojovém skladu, kladného dostupného množství, duplicity skenu a otevřeného stavu dokladu v aplikaci zůstává zachovaná. Samostatný převod do prodejny používá jinou proceduru a tato migrace jej nemění.
+
+Na testovací databázi ověřit přidání palety s blokovanou skladovou kartou i s blokovanou kmenovou kartou, doplnění druhé palety stejného výrobku a odmítnutí nedostupné nebo opakovaně načtené palety. Historické SQL snímky a jejich manifest zůstávají beze změny.

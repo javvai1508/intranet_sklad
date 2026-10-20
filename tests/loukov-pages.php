@@ -4,23 +4,32 @@ ob_start();
 ini_set('session.save_path', sys_get_temp_dir());
 Tracy\Debugger::$logDirectory = sys_get_temp_dir();
 
-final class ReceiptPageModel extends App\Models\LoukovReceiptModel
+final class ReceiptPageModel extends App\Models\TransferReceiptModel
 {
+    public int $documentId = 42;
     public bool $closed = false;
     public bool $confirmed = false;
     public array $calls = [];
     public function __construct() {}
-    public function getPendingDocuments(): array {
-        $this->calls[] = ['list'];
-        return [Nette\Database\Row::from(['ID' => 42, 'ParovaciZnak' => '384-TEST', 'DatPorizeni' => '2026-10-20'])];
+    public function getPendingDocuments(string $target = ''): array {
+        $this->calls[] = ['list', $target];
+        $rows = [
+            Nette\Database\Row::from(['ID' => 42, 'ParovaciZnak' => '384-TEST', 'DatPorizeni' => '2026-10-20', 'Direction' => 'Do Loukova', 'SourceWarehouse' => '00100304', 'TargetWarehouse' => '00100308']),
+            Nette\Database\Row::from(['ID' => 43, 'ParovaciZnak' => '381-TEST', 'DatPorizeni' => '2026-10-20', 'Direction' => 'Z Loukova', 'SourceWarehouse' => '00100308', 'TargetWarehouse' => '00100304']),
+        ];
+        return array_values(array_filter($rows, fn($r) => $target === '' || $r->TargetWarehouse === $target));
     }
     public function getDocument($id, bool $lock = false) {
-        return (int) $id === 42 ? Nette\Database\Row::from(['ID' => 42, 'ParovaciZnak' => '384-TEST',
+        return (int) $id === $this->documentId ? Nette\Database\Row::from([
+            'ID' => $this->documentId, 'ParovaciZnak' => $this->documentId === 42 ? '384-TEST' : '381-TEST',
+            'SourceWarehouse' => $this->documentId === 42 ? '00100304' : '00100308',
+            'TargetWarehouse' => $this->documentId === 42 ? '00100308' : '00100304',
+            'Direction' => $this->documentId === 42 ? 'Do Loukova' : 'Z Loukova',
             'Ready' => 1, 'CompletedAt' => $this->closed ? '2026-10-20 18:40:00' : null]) : null;
     }
     public function findDocument(string $number) {
         $this->calls[] = ['find', $number];
-        return $number === '384-TEST' ? $this->getDocument(42) : null;
+        return $number === ($this->documentId === 42 ? '384-TEST' : '381-TEST') ? $this->getDocument($this->documentId) : null;
     }
     public function getPallets($id, bool $lock = false): array {
         return [Nette\Database\Row::from(['ID' => 7, 'SerialNumber' => '123', 'ProductName' => 'Test výrobek',
@@ -44,7 +53,7 @@ function receiptCheck(bool $ok, string $message): void {
     if (!$ok) throw new RuntimeException($message);
 }
 $container = createTestContainer();
-$name = $container->findByType(App\Models\LoukovReceiptModel::class)[0];
+$name = $container->findByType(App\Models\TransferReceiptModel::class)[0];
 $container->removeService($name);
 $model = new ReceiptPageModel;
 $container->addService($name, $model);
@@ -52,11 +61,11 @@ $user = $container->getByType(Nette\Security\User::class);
 $user->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['fullname' => 'Test', 'vychozi' => 2]));
 $session = $container->getByType(Nette\Http\Session::class)->getSection('loukovReceipt');
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
-function receiptPage(string $action): array {
+function receiptPage(string $action, array $params = []): array {
     global $factory;
-    $p = $factory->createPresenter('LoukovReceipt');
+    $p = $factory->createPresenter('TransferReceipt');
     $p->autoCanonicalize = false;
-    $response = $p->run(new Nette\Application\Request('LoukovReceipt', 'GET', ['action' => $action]));
+    $response = $p->run(new Nette\Application\Request('TransferReceipt', 'GET', ['action' => $action] + $params));
     receiptCheck($response instanceof Nette\Application\Responses\TextResponse, 'Expected receipt HTML');
     return [$p, $response->getSource()->renderToString()];
 }
@@ -96,11 +105,38 @@ $callback = $form->onSuccess[0];
 receiptRedirect(fn() => $callback($form, (object) ['number' => ' 384-TEST ']));
 receiptCheck(end($model->calls) === ['find', '384-TEST'] && $session->documentId === 42, 'Number selection failed');
 
+// A single list and destination filter cover both directions.
+[, $html] = receiptPage('default');
+receiptCheck(str_contains($html, '384-TEST') && str_contains($html, '381-TEST'), 'Both directions missing from list');
+[, $html] = receiptPage('default', ['target' => '00100304']);
+receiptCheck(str_contains($html, '381-TEST') && !str_contains($html, '384-TEST'), 'Return destination filter failed');
+[, $html] = receiptPage('default', ['target' => '00100308']);
+receiptCheck(str_contains($html, '384-TEST') && !str_contains($html, '381-TEST'), 'Loukov destination filter failed');
+$model->documentId = 43;
+$model->closed = false;
+$model->confirmed = false;
+[$p] = receiptPage('default');
+receiptRedirect(fn() => $p->handleSelectReceipt(43));
+[$p, $html] = receiptPage('showReceipt');
+receiptCheck(str_contains($html, 'Z Loukova') && str_contains($html, '00100304'), 'Return receipt direction missing');
+$form = $p['readBarCodeForm'];
+$callback = $form->onSuccess[0];
+receiptRedirect(fn() => $callback($form, (object) ['dispatchId' => 43, 'BarCode' => '00123']));
+receiptCheck(end($model->calls) === ['scan', 43, '123'], 'Return scan routed to another document');
+receiptRedirect(fn() => $p->handleFinishReceipt(43));
+receiptCheck($model->closed, 'Return receipt did not close');
+
+// Bookmarked Loukov-only URLs continue to the shared screen.
+$legacy = $factory->createPresenter('LoukovReceipt');
+$legacy->autoCanonicalize = false;
+$response = $legacy->run(new Nette\Application\Request('LoukovReceipt', 'GET', ['action' => 'showReceipt']));
+receiptCheck($response instanceof Nette\Application\Responses\RedirectResponse, 'Legacy receipt URL broken');
+
 $user->login(new Nette\Security\SimpleIdentity(2, ['vyroba']));
 $before = count($model->calls);
-$p = $factory->createPresenter('LoukovReceipt');
+$p = $factory->createPresenter('TransferReceipt');
 $p->autoCanonicalize = false;
-$response = $p->run(new Nette\Application\Request('LoukovReceipt', 'GET', ['action' => 'default']));
+$response = $p->run(new Nette\Application\Request('TransferReceipt', 'GET', ['action' => 'default']));
 receiptCheck($response instanceof Nette\Application\Responses\RedirectResponse && count($model->calls) === $before, 'Non-warehouse user can access receipt');
 ob_end_clean();
 echo "PASS: receipt selection, barcode routing, stale tabs, completion, read-only state and role\n";
