@@ -12,6 +12,7 @@ final class TestResult
     public function __construct(private mixed $value = null) {}
     public function fetch() { return $this->value; }
     public function fetchField() { return $this->value; }
+    public function fetchAll() { return $this->value; }
 }
 final class TestDatabase
 {
@@ -151,4 +152,51 @@ $tests['delivery pallet removal keeps the document item'] = function () {
     expect($m->removeDeliveryNoteItemSN(7, 1, 5) === true, 'Pallet removal failed');
     expect($db->commits === 1 && $db->rollbacks === 0, 'Pallet removal must commit');
 };
+
+$tests['transfer lookup separates Schenker and Loukov'] = function () {
+    $db = new TestDatabase(function ($sql, $params) {
+        expect(str_contains($sql, 'do.RadaDokladu = ?') && str_contains($sql, 'do.IDSklad = ?'), 'Transfer lookup must filter series and source');
+        expect($params[1] === '00100304', 'Wrong source warehouse');
+        return [(object) ['ID' => $params[0] === '384' ? 384 : 372]];
+    });
+    $m = model(App\Models\MaterialModel::class, $db);
+    expect($m->checkDispatchOpen('toLoukov')[0]->ID === 384, 'Loukov opened Schenker document');
+    expect($m->checkDispatchOpen('toSchenker')[0]->ID === 372, 'Schenker opened Loukov document');
+    rejects(fn() => $m->checkDispatchOpen('unknown'));
+    expect(count($db->queries) === 2, 'Unknown type reached SQL');
+};
+$tests['transfer creation validates the procedure result and rolls back wrong settings'] = function () {
+    foreach (['toLoukov' => ['384', '00100308'], 'toSchenker' => ['372', '00100303']] as $type => [$series, $target]) {
+        foreach ([false, true] as $wrongTarget) {
+            $db = new TestDatabase(function ($sql, $params) use ($type, $series, $target, $wrongTarget) {
+                if (str_contains($sql, 'sp_getapplock')) return 0;
+                if (str_contains($sql, 'do.RadaDokladu = ?')) return [];
+                if (str_contains($sql, 'EXEC hpx_agrafa_sklad_zaloz_vydej_ost_hl_tablet')) {
+                    expect($params[0] === $type && preg_match('/^[a-f0-9]{12}$/D', $params[1]), 'Wrong procedure parameters');
+                    return true;
+                }
+                if (str_contains($sql, 'SELECT ID FROM TabDokladyZbozi_EXT')) return 42;
+                if (str_contains($sql, 'AS StavDispExp')) return (object) [
+                    'DruhPohybuZbo' => 4, 'IDSklad' => '00100304', 'RadaDokladu' => $series,
+                    'IdSkladPrevodu' => $wrongTarget ? 'incorrect' : $target,
+                    'TypPrevodky' => '351', 'DruhPohybuPrevod' => 0,
+                ];
+                throw new Exception('Unexpected query: ' . $sql);
+            });
+            $m = model(App\Models\MaterialModel::class, $db);
+            if ($wrongTarget) {
+                rejects(fn() => $m->openNewDispatch($type));
+                expect($db->rollbacks === 1 && $db->commits === 0, 'Wrong transfer settings committed');
+            } else {
+                expect($m->openNewDispatch($type)['IDDoklad'] === 42 && $db->commits === 1, 'Correct transfer failed');
+            }
+        }
+    }
+};
+$tests['existing transfer prevents creating a second document'] = function () {
+    $db = new TestDatabase(fn($sql) => str_contains($sql, 'sp_getapplock') ? 0 : [(object) ['ID' => 384]]);
+    rejects(fn() => model(App\Models\MaterialModel::class, $db)->openNewDispatch('toLoukov'));
+    expect(count($db->queries) === 2 && $db->rollbacks === 1, 'Duplicate transfer reached insert');
+};
+
 foreach ($tests as $name => $test) { $test(); echo "PASS: $name\n"; }

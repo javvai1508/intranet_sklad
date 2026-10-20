@@ -35,7 +35,7 @@ Závislosti byly vybrány statickým rozborem aplikace a aktivního SQL. Volán�
 
 | Parametr | Do Schenkeru | Do Loukova | Do prodejny |
 |---|---|---|---|
-| Typ aplikace | `toSchenker` | plánovaný `toLoukov` | samostatná operace |
+| Typ aplikace | `toSchenker` | `toLoukov` | samostatná operace |
 | Zdrojový sklad | `00100304` | `00100304` | `00100304` |
 | Řada výdejky | `372` | `384` | `372` |
 | Druh pohybu výdejky | `4` | `4` (stejný postup jako Schenker) | `4` |
@@ -43,16 +43,21 @@ Závislosti byly vybrány statickým rozborem aplikace a aktivního SQL. Volán�
 | Řada příjemky | `351` | `351` | `351` |
 | Druh pohybu příjemky | `0` | `0` (stejný postup jako Schenker) | `0` |
 
-Schenker a prodejna jsou ověřené z exportovaných procedur. Sklady a řady Loukova zadal uživatel 18. 10. 2026; podpora Loukova dosud není v uloženém snímku procedury pro založení výdejky ani v PHP aplikaci implementována.
+Schenker a prodejna jsou ověřené z exportovaných procedur. Sklady a řady Loukova zadal uživatel 18. 10. 2026; podpora Loukova je implementovaná v PHP aplikaci a v migraci `migrations/20261020_loukov.sql`. Historický snímek v `procedures/` zůstává beze změny.
 
-U převodu do Schenkeru a plánovaného převodu do Loukova provádí tisk a realizaci uživatel ručně v Heliosu (potvrzeno 18. 10. 2026). Aplikace při uzavření volá `hpx_agrafa_sklad_uzavrit_vydej`, která přepočítá množství/ceny a nastaví `_exp_dat_uzavreno`, `_exp_dat_ktisku` a `_exp_dat_tisku`. Volání realizace je v této proceduře zakomentované. Samostatný převod do prodejny má jiný postup: jeho procedura realizuje výdejku a vytváří příjemku.
+U převodu do Schenkeru a převodu do Loukova provádí tisk a realizaci uživatel ručně v Heliosu (potvrzeno 18. 10. 2026). Aplikace při uzavření volá `hpx_agrafa_sklad_uzavrit_vydej`, která přepočítá množství/ceny a nastaví `_exp_dat_uzavreno`, `_exp_dat_ktisku` a `_exp_dat_tisku`. Volání realizace je v této proceduře zakomentované. Samostatný převod do prodejny má jiný postup: jeho procedura realizuje výdejku a vytváří příjemku.
 
-## Následující změna: Loukov
+## Nasazení převodu do Loukova
 
-- Přidat volbu a společnou obsluhu s převodem do Schenkeru v MaterialPresenteru a šablonách.
-- Rozlišovat otevřené doklady podle skladu a řady: Schenker `372`, Loukov `384`.
-- Doplnit `toLoukov` do procedury založení hlavičky s hodnotami uvedenými výše.
-- Zachovat ruční tisk a realizaci. Společné přidávání palet používá zdrojový sklad z hlavičky dokladu.
+1. V cílové databázi Heliosu ověřit sklad `00100308`, výdejovou řadu `384` pro druh pohybu `4` a příjmovou řadu `351` pro druh pohybu `0`. Konfigurace číselníků není součástí schématu bez dat.
+2. V SSMS spustit [migrations/20261020_loukov.sql](migrations/20261020_loukov.sql) v této databázi. Skript mění pouze proceduru založení hlavičky, nevytváří provozní doklady.
+3. Nasadit PHP aplikaci a vymazat cache Nette v `temp/cache`.
+4. Na testovací databázi otevřít současně Schenker a Loukov. Každá volba musí pokračovat ve vlastní rozpracované výdejce (řady `372` / `384`).
+5. Ověřit načtení palety, odmítnutí duplicitního skenu, odebrání palety, uzavření, ruční tisk a realizaci v Heliosu včetně návazné příjemky do správného skladu.
+
+Převody sdílejí zpracování načtení, odebrání i uzavření. Nový doklad se kontroluje podle zdrojového a cílového skladu, obou řad a druhů pohybu; při nesouladu se transakce vrátí zpět. Rozpracované doklady se vyhledávají podle řady a zdrojového skladu. Při více rozpracovaných výdejkách stejného typu se další doklad nezaloží.
+
+Původní SQL definice a kontrolní součty v `manifest.json` dokumentují export z 18. 10. 2026. Migrace je samostatná následná změna a není součástí tohoto historického manifestu. Pro návrat k původní aplikaci lze obnovit původní definici procedury ze snímku (jako ALTER PROCEDURE); již vytvořené doklady tím nejsou odstraněny.
 
 ## Pravidlo dodacích listů
 

@@ -4,6 +4,22 @@ namespace App\Models;
 
 class MaterialModel extends BaseModel {
 
+    private const TRANSFERS = [
+        'toSchenker' => ['source' => '00100304', 'series' => '372', 'target' => '00100303', 'receiptSeries' => '351', 'title' => 'Do Schenkeru'],
+        'toLoukov' => ['source' => '00100304', 'series' => '384', 'target' => '00100308', 'receiptSeries' => '351', 'title' => 'Do Loukova'],
+    ];
+
+    public static function isOutgoingTransfer(?string $type): bool
+    {
+        return isset(self::TRANSFERS[$type ?? '']);
+    }
+
+    public static function getTransferSettings(string $type): array
+    {
+        return self::TRANSFERS[$type] ?? throw new \RuntimeException('Neznámý typ převodu.');
+    }
+
+
     /** !!!
      * dohledání a dotažení výdejky
      * @param type $dispatchId
@@ -14,7 +30,7 @@ class MaterialModel extends BaseModel {
                         . "do.PoradoveCislo, "
                         . "do.DatPorizeni, "
                         . "do.ParovaciZnak, "
-                        . "do.IDSklad, "
+                        . "do.IDSklad, do.DruhPohybuZbo, do.IdSkladPrevodu, do.TypPrevodky, do.DruhPohybuPrevod, "
                         . "CONVERT(NVARCHAR(20), doe._exp_dat_uzavreno, 104) AS DatUzavrenoExp, "
                         . "CASE WHEN doe._exp_dat_uzavreno IS NOT NULL OR do.DatRealizace IS NOT NULL THEN 1 ELSE 0 END AS StavDispExp, "
                         . "cntvc.cnt AS PocetPalet, "
@@ -104,23 +120,14 @@ class MaterialModel extends BaseModel {
      * @return type
      */
     public function checkDispatchOpen($dispatchType) {
-        switch ($dispatchType) {
-            case 'toSchenker': 
-                $idSklad = '00100304';
-                break;
-            case 'toShop': 
-                $idSklad = '00100304';
-                break;
-            default: 
-                $idSklad = '';
-        }
+        $settings = self::getTransferSettings($dispatchType);
         $res = $this->db->query("SELECT "
                         . "do.ID, "
                         . "do.ParovaciZnak, "
                         . "doe._skl_token "
                         . "FROM TabDokladyZbozi do "
                         . "JOIN TabDokladyZbozi_EXT doe ON do.ID = doe.ID "
-                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = '372' AND do.IDSklad = ? AND doe._exp_dat_uzavreno IS NULL", $idSklad)->fetchAll();
+                        . "WHERE do.DruhPohybuZbo = 4 AND do.RadaDokladu = ? AND do.IDSklad = ? AND do.DatRealizace IS NULL AND doe._exp_dat_uzavreno IS NULL", $settings['series'], $settings['source'])->fetchAll();
         return $res;
     }
 
@@ -442,6 +449,17 @@ class MaterialModel extends BaseModel {
             if ($this->checkDispatchOpen($dispatchType)) { throw new \RuntimeException('Otevřená výdejka již existuje. Vraťte se a otevřete ji.'); }
             $result = $this->openNewDispatchInternal($dispatchType);
             if (empty($result['IDDoklad'])) { throw new \RuntimeException('Výdejku se nepodařilo založit.'); }
+
+            $settings = self::getTransferSettings($dispatchType);
+            $document = $this->getDispatch($result['IDDoklad']);
+            if (!$document || (int) $document->DruhPohybuZbo !== 4
+                || (string) $document->IDSklad !== $settings['source']
+                || (string) $document->RadaDokladu !== $settings['series']
+                || (string) $document->IdSkladPrevodu !== $settings['target']
+                || (string) $document->TypPrevodky !== $settings['receiptSeries']
+                || (int) $document->DruhPohybuPrevod !== 0) {
+                throw new \RuntimeException('Založený doklad neodpovídá převodu. Ověřte nasazení SQL procedury v Heliosu.');
+            }
 
             return $result;
         });

@@ -3,9 +3,9 @@
 <div class="content">
             <div class="row delivery-note-header">
                 <div class="col-sm-12">
-                {if $dispatchType == 'toSchenker'}
+                {if $isOutgoingTransfer}
                     <div class="float-right delivery-note-status"><h1 class="text-danger">Počet palet: {$dispatch->PocetPalet}</h1></div>
-                    <h1>Do Schenkeru</h1> 
+                    <h1>{$transferTitle}</h1> 
                 {elseif $dispatchType == 'fromSchenker'}
                     <div class="float-right delivery-note-status"><h1 class="text-danger">Palety: {$dispatch->Priprava}/{$dispatch->PocetPalet}</h1></div>
                     <h1>Ze Schenkeru</h1> 
@@ -19,7 +19,7 @@
     <div class="row delivery-note-items">
         <div class="col-sm-12">
             <h5>Detail položky výdejky</h5>
-            {if $dispatchType == 'toSchenker'}
+            {if $isOutgoingTransfer}
             <table class="table table-bordered table-striped table-sm">
                 <thead class="thead-light">
                     <tr>
@@ -87,7 +87,7 @@
                         {foreach $dispatchItemSNs as $dispatchItemSN}
                             <tr>
                                 <td class="text-center">{$dispatchItemSN->Nazev}</td>
-                                {if $dispatchType == 'toSchenker'}
+                                {if $isOutgoingTransfer}
                                 <td class="text-center font-weight-bold">{$dispatchItemSN->Mnozstvi|number:2}</td>
                                 {elseif $dispatchType == 'fromSchenker'}
                                 <td class="text-center font-weight-bold">{$dispatchItemSN->PripravaMnoz|number:2}/{$dispatchItemSN->Mnozstvi|number:2}</td>
