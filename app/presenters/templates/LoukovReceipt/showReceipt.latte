@@ -13,8 +13,8 @@
             <tr n:foreach="$pallets as $pallet" n:class="$pallet->Confirmed ? table-success : table-warning">
                 <td>{$pallet->SerialNumber}</td>
                 <td>{$pallet->ProductName}</td>
-                <td>{$pallet->Quantity|number:3} {$pallet->MJ}</td>
-                <td>{($pallet->ReceivedQuantity ?? 0)|number:3}</td>
+                <td>{$pallet->Quantity} {$pallet->MJ}</td>
+                <td>{$pallet->ReceivedQuantity ?? 0}</td>
                 <td>{if $pallet->ScannedAt !== null}{$pallet->ScannedAt|date:'d.m.Y H:i:s'}{else}Čeká na načtení{/if}</td>
             </tr>
             <tr n:if="!count($pallets)"><td colspan="5">Na výdejce nejsou žádné palety.</td></tr>
