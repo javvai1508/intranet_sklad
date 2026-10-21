@@ -1,0 +1,18 @@
+-- Referencni snimek exportu 18. 10. 2026; NENASAZOVAT jako migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[hp_InvPolozka] @Id INT AS
+IF (SELECT DatumClose FROM TabInvHead WHERE Id=@Id) IS NOT NULL
+BEGIN
+DECLARE @ErrStr NVARCHAR(2047)
+SET @ErrStr = dbo.hf_FormatError(70439, '')
+RAISERROR(@ErrStr, 16, 1)
+RETURN
+END
+IF (SELECT TabInvItem.Uzav FROM TabInvItem WHERE Id=@Id)=0
+UPDATE TabInvItem SET Uzav=1 WHERE Id=@Id
+ELSE
+UPDATE TabInvItem SET Uzav=0 WHERE Id=@Id
+GO

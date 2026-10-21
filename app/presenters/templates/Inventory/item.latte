@@ -1,0 +1,13 @@
+{block content}
+<div class="content">
+<h1>Inventura {$inventory->Id} – sklad {$inventory->IdSklad}</h1>
+<p>{$inventory->Popis}</p>
+<h2>Paleta {$item->SerialNumber}</h2>
+<p>{$item->RegCis} – {$item->Nazev1}</p>
+<p>Umístění: {$item->LocationCode ?? 'bez umístění'}. Skladové množství: <strong>{$item->StockQuantity} {$item->EvidenceUnit}</strong>.</p>
+<p>Zadávejte v evidenční jednotce <strong>{$item->EvidenceUnit}</strong>. Inventurní jednotka: {$item->MJ}, převod: {$item->Conversion}.</p>
+<p n:if="$item->CheckId !== null" class="alert alert-warning">Paleta již byla kontrolována. Dosud zapsáno {$item->InventoryQuantity} {$item->EvidenceUnit}.
+    Pro změnu zaškrtněte „Opravit dříve potvrzené množství“. Opakované načtení množství nepřičítá.</p>
+{control quantityForm}
+<a n:href="show id => $inventory->Id" class="btn btn-secondary mt-3">Zrušit a pokračovat ve čtení</a>
+</div>

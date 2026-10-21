@@ -114,3 +114,7 @@ V cílové databázi Heliosu spustit [migrations/20261020_transfer_allow_blocked
 Platí pro převody používající tuto proceduru: do Schenkeru, do Loukova a z Loukova. Kontrola existence palety ve zdrojovém skladu, kladného dostupného množství, duplicity skenu a otevřeného stavu dokladu v aplikaci zůstává zachovaná. Samostatný převod do prodejny používá jinou proceduru a tato migrace jej nemění.
 
 Na testovací databázi ověřit přidání palety s blokovanou skladovou kartou i s blokovanou kmenovou kartou, doplnění druhé palety stejného výrobku a odmítnutí nedostupné nebo opakovaně načtené palety. Historické SQL snímky a jejich manifest zůstávají beze změny.
+
+## Inventura palet
+
+Příprava Heliosu, instalace pomocných tabulek a ověřovací postup: [INVENTORY.md](INVENTORY.md).

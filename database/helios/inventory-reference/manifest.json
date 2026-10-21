@@ -1,0 +1,60 @@
+{
+  "source": "Helios002.sql, export 2026-10-18",
+  "purpose": "Inventory verification; references only, not migrations",
+  "objects": [
+    {
+      "path": "dbo.TabUmisteni.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabUmisteni",
+      "sha256": "67b3805805ec0f088b7ac862c2663194db8bf8f921263b98092b3f7dc77c6a72"
+    },
+    {
+      "path": "dbo.TabInvHead.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabInvHead",
+      "sha256": "1f307ce538d51d2a87a5277247bad049d9aabb977e45050d2e59d1aaf4efa022"
+    },
+    {
+      "path": "dbo.TabInvItem.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabInvItem",
+      "sha256": "73517b61fdebb9339ec50d43ac2195625f3e1a361e6aacb25978b6d4d8e5cbcc"
+    },
+    {
+      "path": "dbo.hp_SkladInventura.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_SkladInventura",
+      "sha256": "ef91f16d657af5973e984f674d98d23e7b04c29c9a080ad8f2e5add704f246b5"
+    },
+    {
+      "path": "dbo.hp_InvPolozka.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_InvPolozka",
+      "sha256": "61e2390d7abf5d5ee98ce5023b3938e762211555a67ad183faafca15409a02da"
+    },
+    {
+      "path": "dbo.hpx_agrafa_skl_inv_nastav_mn.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_inv_nastav_mn",
+      "sha256": "d6ccee43729f27380b96c425b616e201fcfff0288f08ab2b7687b1833966423c"
+    },
+    {
+      "path": "dbo.hpx_agrafa_skl_inv_aktualizuj_uc_stav.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_inv_aktualizuj_uc_stav",
+      "sha256": "2db13e5dab27b46341383d82d008e73f782b1437ffce15cff26f1d7b9bc169d3"
+    },
+    {
+      "path": "dbo.ht_InvItem.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_InvItem",
+      "sha256": "b219158bd5f82ebf31ac52ba0aa3620865eac95c959f9006a9cf76d4ee58cee9"
+    },
+    {
+      "path": "dbo.ht_InvHead_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_InvHead_AVAModel_Change",
+      "sha256": "426d9a2f8312f06ce193b6b7f37b259c99911dcf0651f04aee0601a7d4bf14bf"
+    }
+  ]
+}
