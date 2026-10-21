@@ -8,7 +8,7 @@ CREATE PROCEDURE [dbo].[hpx_agrafa_skl_inv_aktualizuj_uc_stav]
 
 AS
 
--- doplnit stav skladu 
+-- doplnit stav skladu
 
 UPDATE TabInvItem
 SET TabInvItem.MnozstviSklad = TabStavSkladu.Mnozstvi

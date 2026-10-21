@@ -9,7 +9,7 @@
    Opakované spuštění existující tabulky ponechá. Nejde o synchronizaci libovolných
    starších definic. Standardní tabulky, triggery ani procedury Heliosu nemění.
 2. SQL účtu aplikace zajistěte SELECT na `TabInvHead`, `TabInvItem`, `TabVyrCS`,
-   `TabStavSkladu`, `TabKmenZbozi`; UPDATE sloupců `MnozstviInv`, `MnozstviMJ`,
+   `TabStavSkladu`, `TabKmenZbozi`, `TabVStavUmisteni`, `TabUmisteni`; UPDATE sloupců `MnozstviInv`, `MnozstviMJ`,
    `Zmenil`, `DatZmeny` v `TabInvItem`; SELECT a INSERT na obou nových tabulkách.
    Stávající oprávnění mohou být dostačující. Aplikace používá stávající transakční
    `sp_getapplock` jako ostatní skladové operace. DDL spouští správce, nikoli aplikace.
@@ -41,7 +41,7 @@ Po načtení jediné odpovídající položky se otevře množství předvyplně
 stavem při inventuře. U již kontrolované položky se předvyplní aktuální inventurní
 množství a oprava vyžaduje výslovné zaškrtnutí. Nula vyžaduje samostatné potvrzení.
 Zrušení nic nezapisuje. Při více řádcích obsluha nejprve vybere konkrétní řádek;
-ID umístění je zobrazeno pro jejich rozlišení. Uzavřený řádek nelze měnit.
+Kód umístění je zobrazen pro jejich rozlišení. Uzavřený řádek nelze měnit.
 
 Množství není omezené skladovým stavem (inventura může zjistit přebytek).
 Záporné hodnoty a více než šest desetinných míst jsou odmítnuty. Číselné řetězce

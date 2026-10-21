@@ -57,7 +57,7 @@ class InventoryModel extends BaseModel
         if ($itemId !== null) { $filter .= ' AND i.Id = ?'; $parameters[] = $itemId; }
         return $this->db->query('SELECT i.Id, i.IdDoklad, i.IdSklad, i.IdVyrCS, i.IDUmisteni,
             i.Nazev1, i.RegCis, i.Uzav, v.Nazev1 AS SerialNumber, i.MJ,
-            k.MJEvidence AS EvidenceUnit,
+            k.MJEvidence AS EvidenceUnit, u.Kod AS LocationCode, u.Nazev AS LocationName,
             CONVERT(varchar(40), i.MnozstviSklad) AS StockQuantity,
             CONVERT(varchar(40), i.MnozstviInv) AS InventoryQuantity,
             CONVERT(varchar(40), i.MnozstviMJ) AS UnitQuantity,
@@ -72,6 +72,8 @@ class InventoryModel extends BaseModel
             JOIN TabStavSkladu s ON s.ID = i.IdSklad AND s.IDSklad = h.IdSklad
             JOIN TabVyrCS v ON v.ID = i.IdVyrCS
             JOIN TabKmenZbozi k ON k.ID = s.IDKmenZbozi
+            LEFT JOIN TabVStavUmisteni su ON su.Id = i.IDUmisteni
+            LEFT JOIN TabUmisteni u ON u.ID = su.IdUmisteni
             OUTER APPLY (SELECT TOP (1) c.* FROM dbo.eTab_IntranetInvCheck c
                 WHERE c.ItemId = i.Id ORDER BY c.ID DESC) a
             WHERE i.IdDoklad = ?' . $filter . ' ORDER BY v.Nazev1, i.IDUmisteni, i.Id', ...$parameters)->fetchAll();

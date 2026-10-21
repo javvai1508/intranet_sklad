@@ -9,7 +9,7 @@ CREATE PROCEDURE [dbo].[hpx_agrafa_skl_inv_nastav_mn]
 AS
 
 UPDATE TabInvItem
-SET 
+SET
   MnozstviInv = MnozstviSklad,
   MnozstviMJ = MnozstviSklad
 WHERE ID = @IDInvRd

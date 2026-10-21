@@ -10,7 +10,7 @@
     {if count($matches)}
         <p>Vyberte konkrétní řádek a umístění palety:</p>
         <a n:foreach="$matches as $row" n:href="item id => $inventory->Id, itemId => $row->Id" class="btn btn-primary mb-2">
-            {$row->Nazev1} – umístění ID {$row->IDUmisteni ?? 'bez umístění'} – {$row->StockQuantity} {$row->EvidenceUnit}
+            {$row->Nazev1} – umístění {$row->LocationCode ?? 'bez umístění'} – {$row->StockQuantity} {$row->EvidenceUnit}
         </a>
     {else}
         <p class="text-danger">Paleta nebyla nalezena ve vybrané inventuře.</p>
@@ -22,10 +22,10 @@
     {/if}
 {/if}
 <table class="table table-bordered table-striped mt-3">
-<thead><tr><th>Paleta</th><th>Výrobek</th><th>Umístění ID</th><th>Sklad</th><th>Zjištěno</th><th>Stav</th><th></th></tr></thead>
+<thead><tr><th>Paleta</th><th>Výrobek</th><th>Umístění</th><th>Sklad</th><th>Zjištěno</th><th>Stav</th><th></th></tr></thead>
 <tbody>
 <tr n:foreach="$items as $row" n:class="$row->Confirmed ? table-success : table-warning">
-<td>{$row->SerialNumber}</td><td>{$row->Nazev1}</td><td>{$row->IDUmisteni ?? '—'}</td>
+<td>{$row->SerialNumber}</td><td>{$row->Nazev1}</td><td>{$row->LocationCode ?? '—'}</td>
 <td>{$row->StockQuantity} {$row->EvidenceUnit}</td><td>{$row->InventoryQuantity} {$row->EvidenceUnit}</td>
 <td>{if $row->Confirmed}Potvrzeno {$row->CheckedAt|date:'d.m.Y H:i:s'} ({$row->CheckedBy}){elseif $row->CheckId !== null}Změněno po kontrole – ověřit znovu{else}Čeká na kontrolu{/if}{if $row->Uzav} – uzavřená položka{/if}</td>
 <td><a n:if="!$row->Uzav" n:href="item id => $inventory->Id, itemId => $row->Id" class="btn btn-outline-primary">{if $row->CheckId !== null}Opravit množství{else}Zkontrolovat{/if}</a></td>

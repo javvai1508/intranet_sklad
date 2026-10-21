@@ -23,13 +23,13 @@ final class InventoryPageModel extends App\Models\InventoryModel
         $this->calls[] = ['items', $id, $serial, $itemId];
         if ($id !== 42 || ($serial !== null && $serial !== '123') || ($itemId !== null && $itemId !== 7)) return [];
         $r = Nette\Database\Row::from(['Id' => 7, 'IdDoklad' => 42, 'IdSklad' => 80, 'IdVyrCS' => 10,
-            'IDUmisteni' => null, 'Uzav' => 0, 'SerialNumber' => '123', 'Nazev1' => 'Test výrobek', 'RegCis' => '100',
+            'IDUmisteni' => null, 'LocationCode' => null, 'LocationName' => null, 'Uzav' => 0, 'SerialNumber' => '123', 'Nazev1' => 'Test výrobek', 'RegCis' => '100',
             'MJ' => 'bal', 'EvidenceUnit' => 'ks', 'StockQuantity' => '10.000000',
             'InventoryQuantity' => $this->checked ? '8.000000' : '0.000000',
             'UnitQuantity' => $this->checked ? '4.000000' : '0.000000', 'Conversion' => '2',
             'CheckId' => $this->checked ? 1 : null, 'Confirmed' => (int) $this->checked,
             'CheckedAt' => $this->checked ? '2026-10-21 10:00:00' : null, 'CheckedBy' => '1']);
-        return $this->ambiguous ? [$r, Nette\Database\Row::from(array_merge((array) $r, ['Id' => 8, 'IDUmisteni' => 1234]))] : [$r];
+        return $this->ambiguous ? [$r, Nette\Database\Row::from(array_merge((array) $r, ['Id' => 8, 'IDUmisteni' => 1234, 'LocationCode' => 'A-01', 'LocationName' => 'Regál A']))] : [$r];
     }
     public function locatePallet(string $serial): array {
         return $serial === '999' ? [Nette\Database\Row::from(['SerialNumber' => '999', 'IDSklad' => '00100304', 'Nazev1' => 'Jiný výrobek', 'Quantity' => '5.000000'])] : [];
@@ -44,6 +44,12 @@ final class InventoryPageModel extends App\Models\InventoryModel
         $this->calls[] = ['report', $id, $serial, $note, $user];
         return true;
     }
+}
+function hasInvCsrf(Nette\Application\UI\Form $form): bool {
+    foreach ($form->getControls() as $control) {
+        if ($control instanceof Nette\Forms\Controls\CsrfProtection) return true;
+    }
+    return false;
 }
 function invCheck(bool $ok, string $message): void { if (!$ok) throw new RuntimeException($message); }
 function invRedirect(callable $action): void {
@@ -71,7 +77,7 @@ invCheck(str_contains($html, '00100308') && str_contains($html, 'Test inventury'
 [$p, $html] = invPage('show', ['id' => 42]);
 invCheck(str_contains($html, 'scanForm') && str_contains($html, 'Test výrobek'), 'Scan/list UI missing');
 $form = $p['scanForm'];
-invCheck($form->getComponent('_token', false) !== null, 'Scan lacks CSRF');
+invCheck(hasInvCsrf($form), 'Scan lacks CSRF');
 $callback = $form->onSuccess[0];
 invRedirect(fn() => $callback($form, (object) ['barcode' => '00123']));
 invCheck(end($model->calls) === ['items', 42, '123', null], 'Wrong inventory/pallet scan');
@@ -79,7 +85,7 @@ invCheck(end($model->calls) === ['items', 42, '123', null], 'Wrong inventory/pal
 invCheck(str_contains($html, '10.000000') && str_contains($html, 'quantityForm'), 'Quantity default missing');
 $form = $p['quantityForm'];
 invCheck($form['quantity']->getValue() === '10.000000', 'Stock quantity not prefilled');
-invCheck($form->getComponent('_token', false) !== null, 'Quantity lacks CSRF');
+invCheck(hasInvCsrf($form), 'Quantity lacks CSRF');
 $v = $form['version']->getValue();
 $callback = $form->onSuccess[0];
 invRedirect(fn() => $callback($form, (object) ['quantity' => '8', 'version' => $v, 'correction' => false, 'zero' => false]));
@@ -88,12 +94,12 @@ invCheck(end($model->calls) === ['save', 42, 7, '8', $v, false, false, '1'], 'Wr
 invCheck($p['quantityForm']['quantity']->getValue() === '8.000000' && str_contains($html, 'Opravit dříve'), 'Repeat scan hides correction');
 $model->ambiguous = true;
 [, $html] = invPage('show', ['id' => 42, 'code' => '123']);
-invCheck(str_contains($html, '1234') && str_contains($html, 'Vyberte konkrétní'), 'Ambiguous row selection missing');
+invCheck(str_contains($html, 'A-01') && str_contains($html, 'Vyberte konkrétní'), 'Ambiguous row selection missing');
 $model->ambiguous = false;
 [$p, $html] = invPage('show', ['id' => 42, 'code' => '999']);
 invCheck(str_contains($html, '00100304') && str_contains($html, 'discrepancyForm'), 'Unknown/other-warehouse handling missing');
 $form = $p['discrepancyForm'];
-invCheck($form->getComponent('_token', false) !== null, 'Report lacks CSRF');
+invCheck(hasInvCsrf($form), 'Report lacks CSRF');
 $callback = $form->onSuccess[0];
 invRedirect(fn() => $callback($form, (object) ['note' => 'Prověřit']));
 invCheck(end($model->calls) === ['report', 42, '999', 'Prověřit', '1'], 'Wrong discrepancy scope');
