@@ -1,0 +1,16 @@
+-- Referencni snimek exportu 18. 10. 2026; NENASAZOVAT jako migraci.
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TRIGGER [dbo].[ht_InvItem] ON [dbo].[TabInvItem] FOR DELETE
+AS
+SET NOCOUNT ON
+IF EXISTS(SELECT * FROM Deleted WHERE Uzav = 1)
+BEGIN
+ROLLBACK
+DECLARE @ErrStr NVARCHAR(2047)
+SET @ErrStr = dbo.hf_FormatError(99999, N'12498')
+RAISERROR(@ErrStr, 16, 1)
+END
+GO

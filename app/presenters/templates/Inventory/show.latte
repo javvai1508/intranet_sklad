@@ -1,0 +1,40 @@
+{block content}
+<div class="content">
+<h1>Inventura {$inventory->Id} – sklad {$inventory->IdSklad}</h1>
+<p>{$inventory->Popis}</p>
+<h2>Potvrzené řádky palet: {$confirmed} / {count($items)}</h2>
+<p>Součet se týká řádků s paletou. Nezahrnuje položky bez výrobního čísla. Inventuru uzavírá uživatel v Heliosu.</p>
+{control scanForm}
+{if $code !== ''}
+    <h2>Paleta {$code}</h2>
+    {if count($matches)}
+        <p>Vyberte konkrétní řádek a umístění palety:</p>
+        <a n:foreach="$matches as $row" n:href="item id => $inventory->Id, itemId => $row->Id" class="btn btn-primary mb-2">
+            {$row->Nazev1} – umístění ID {$row->IDUmisteni ?? 'bez umístění'} – {$row->StockQuantity} {$row->EvidenceUnit}
+        </a>
+    {else}
+        <p class="text-danger">Paleta nebyla nalezena ve vybrané inventuře.</p>
+        {if count($locations)}
+            <p n:foreach="$locations as $location">V Heliosu: sklad {$location->IDSklad}, {$location->Nazev1}, množství {$location->Quantity}.
+                {if $location->IDSklad === $inventory->IdSklad}Požádejte o doplnění palety do inventury v Heliosu.{else}Paleta je evidována v jiném skladu.{/if}</p>
+        {else}<p>Číslo palety nebylo nalezeno ani v evidenci palet Heliosu. Ověřte štítek.</p>{/if}
+        {control discrepancyForm}
+    {/if}
+{/if}
+<table class="table table-bordered table-striped mt-3">
+<thead><tr><th>Paleta</th><th>Výrobek</th><th>Umístění ID</th><th>Sklad</th><th>Zjištěno</th><th>Stav</th><th></th></tr></thead>
+<tbody>
+<tr n:foreach="$items as $row" n:class="$row->Confirmed ? table-success : table-warning">
+<td>{$row->SerialNumber}</td><td>{$row->Nazev1}</td><td>{$row->IDUmisteni ?? '—'}</td>
+<td>{$row->StockQuantity} {$row->EvidenceUnit}</td><td>{$row->InventoryQuantity} {$row->EvidenceUnit}</td>
+<td>{if $row->Confirmed}Potvrzeno {$row->CheckedAt|date:'d.m.Y H:i:s'} ({$row->CheckedBy}){elseif $row->CheckId !== null}Změněno po kontrole – ověřit znovu{else}Čeká na kontrolu{/if}{if $row->Uzav} – uzavřená položka{/if}</td>
+<td><a n:if="!$row->Uzav" n:href="item id => $inventory->Id, itemId => $row->Id" class="btn btn-outline-primary">{if $row->CheckId !== null}Opravit množství{else}Zkontrolovat{/if}</a></td>
+</tr>
+</tbody></table>
+<h2>Nahlášené nesrovnalosti</h2>
+<table class="table table-bordered"><thead><tr><th>Paleta</th><th>Poznámka</th><th>Čas</th><th>Uživatel</th></tr></thead><tbody>
+<tr n:foreach="$discrepancies as $row"><td>{$row->SerialNumber}</td><td>{$row->Note}</td><td>{$row->ReportedAt|date:'d.m.Y H:i:s'}</td><td>{$row->ReportedBy}</td></tr>
+<tr n:if="!count($discrepancies)"><td colspan="4">Žádné nahlášené nesrovnalosti.</td></tr>
+</tbody></table>
+<a n:href="default" class="btn btn-secondary">Vybrat jinou inventuru</a>
+</div>

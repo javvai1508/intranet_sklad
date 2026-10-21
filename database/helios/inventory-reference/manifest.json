@@ -1,0 +1,54 @@
+{
+  "source": "Helios002.sql, export 2026-10-18",
+  "purpose": "Inventory verification; references only, not migrations",
+  "objects": [
+    {
+      "path": "dbo.TabInvHead.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabInvHead",
+      "sha256": "61d7c5e55c36abaeff0772b0964d23e95ecec3ed50c702e5aab3479a7f7ea59f"
+    },
+    {
+      "path": "dbo.TabInvItem.sql",
+      "kind": "TABLE",
+      "object": "dbo.TabInvItem",
+      "sha256": "631768b09cce1f8a187e74de0aa65ed65f23cacce7c65a9d0bf5c68a4e610cca"
+    },
+    {
+      "path": "dbo.hp_SkladInventura.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_SkladInventura",
+      "sha256": "ef91f16d657af5973e984f674d98d23e7b04c29c9a080ad8f2e5add704f246b5"
+    },
+    {
+      "path": "dbo.hp_InvPolozka.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hp_InvPolozka",
+      "sha256": "61e2390d7abf5d5ee98ce5023b3938e762211555a67ad183faafca15409a02da"
+    },
+    {
+      "path": "dbo.hpx_agrafa_skl_inv_nastav_mn.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_inv_nastav_mn",
+      "sha256": "3c70e7adfb08a1ed608e39abb607123ba4e1c1d70ca1b2d16e6e6011d2b915ad"
+    },
+    {
+      "path": "dbo.hpx_agrafa_skl_inv_aktualizuj_uc_stav.sql",
+      "kind": "PROCEDURE",
+      "object": "dbo.hpx_agrafa_skl_inv_aktualizuj_uc_stav",
+      "sha256": "19bbf456c86441f37c70f380705f58faf7c54f711a8821507918a6cdf6ef5bd5"
+    },
+    {
+      "path": "dbo.ht_InvItem.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_InvItem",
+      "sha256": "b219158bd5f82ebf31ac52ba0aa3620865eac95c959f9006a9cf76d4ee58cee9"
+    },
+    {
+      "path": "dbo.ht_InvHead_AVAModel_Change.sql",
+      "kind": "TRIGGER",
+      "object": "dbo.ht_InvHead_AVAModel_Change",
+      "sha256": "426d9a2f8312f06ce193b6b7f37b259c99911dcf0651f04aee0601a7d4bf14bf"
+    }
+  ]
+}
