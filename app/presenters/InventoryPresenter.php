@@ -40,7 +40,8 @@ class InventoryPresenter extends BasePresenter
 
     private function actor(): string
     {
-        return mb_substr((string) $this->user->getId(), 0, 128);
+        // The identity is the numeric TabCisZam ID, so byte truncation is sufficient.
+        return substr((string) $this->user->getId(), 0, 128);
     }
 
     public function renderShow(int $id, string $code = ''): void

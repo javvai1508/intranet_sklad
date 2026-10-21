@@ -98,4 +98,6 @@ rejects(fn() => $m->reportUnknown(42, '999', 'poznámka', '1'));
 $s->found = false;
 expect($m->reportUnknown(42, '999', 'poznámka', '1'), 'Unknown report failed');
 rejects(fn() => $m->reportUnknown(42, 'not a pallet', '', '1'));
+rejects(fn() => $m->reportUnknown(42, '999', str_repeat('ž', 1001), '1'));
+rejects(fn() => $m->reportUnknown(42, '999', chr(255), '1'));
 echo "PASS: inventory decimals, conversion, zero, duplicate scans, correction, stale forms, locks, rollback and unknown pallets\n";

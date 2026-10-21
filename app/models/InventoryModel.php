@@ -144,7 +144,9 @@ class InventoryModel extends BaseModel
 
     public function reportUnknown(int $id, string $serial, string $note, string $user): bool
     {
-        if (!preg_match('/^[0-9]{1,100}$/D', $serial) || mb_strlen($note) > 1000) {
+        // Count Unicode characters without requiring the optional mbstring extension.
+        $noteLength = preg_match_all('/./us', $note);
+        if (!preg_match('/^[0-9]{1,100}$/D', $serial) || $noteLength === false || $noteLength > 1000) {
             throw new \RuntimeException('Neplatné číslo palety nebo příliš dlouhá poznámka.');
         }
         return $this->warehouseOperation(function () use ($id, $serial, $note, $user) {
