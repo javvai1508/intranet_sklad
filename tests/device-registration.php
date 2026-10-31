@@ -11,7 +11,7 @@ $db = $c->getByType(Nette\Database\Explorer::class);
 $db->query("ATTACH DATABASE ':memory:' AS dbo");
 $db->query('CREATE TABLE dbo.eTab_IntranetZarizeni (ID INT PRIMARY KEY, Kod TEXT, Nazev TEXT,
     Model TEXT, VyrobniCislo TEXT, Povoleno INT, TokenHash TEXT,
-    DatumRegistrace TEXT, DatumPosledniAktivity TEXT)');
+    DatRegistrace TEXT, DatPosledniAktivity TEXT)');
 $db->query("INSERT INTO dbo.eTab_IntranetZarizeni (ID, Kod, Nazev, Model, Povoleno)
     VALUES (1, 'SKLAD-01', 'Čtečka 01', 'TC21', 1), (2, 'SKLAD-02', 'Čtečka 02', 'TC7', 0)");
 $m = $c->getByType(App\Models\DeviceModel::class);
@@ -20,7 +20,7 @@ $token = $m->register(1, false);
 deviceCheck(strlen($token) === 64 && $m->findByToken($token)->ID === 1, 'Registration cannot be resolved');
 $stored = $db->query('SELECT * FROM dbo.eTab_IntranetZarizeni WHERE ID = 1')->fetch();
 deviceCheck($stored->TokenHash === hash('sha256', $token) && $stored->TokenHash !== $token, 'Raw token stored');
-deviceCheck($stored->DatumRegistrace !== null, 'Registration date missing');
+deviceCheck($stored->DatRegistrace !== null, 'Registration date missing');
 foreach ([[1, false], [2, true], [999, true]] as [$id, $replace]) {
     try { $m->register($id, $replace); throw new LogicException('Invalid registration accepted'); }
     catch (RuntimeException $e) { deviceCheck(!$e instanceof LogicException, $e->getMessage()); }

@@ -2,7 +2,7 @@
 
 V Heliosu připravte tabulku `dbo.eTab_IntranetZarizeni` podle dohodnuté struktury.
 Aplikace používá sloupce `ID`, `Kod`, `Nazev`, `Model`, `VyrobniCislo`, `Povoleno`,
-`TokenHash` (VARCHAR(64) nebo NVARCHAR(64), NULL), `DatumRegistrace` a `DatumPosledniAktivity`.
+`TokenHash` (VARCHAR(64) nebo NVARCHAR(64), NULL), `DatRegistrace` a `DatPosledniAktivity`.
 Záznamy a popisné údaje se spravují v Heliosu; aplikace je nevytváří.
 Zařízení bez registrace musí mít `TokenHash = NULL` a povolené zařízení `Povoleno = 1`.
 Doporučené unikátní indexy na `Kod` a nenulový `TokenHash` odpovídají návrhu tabulky.

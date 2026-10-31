@@ -45,7 +45,7 @@ class DeviceModel extends BaseModel
             $params[] = $device->TokenHash;
         }
         $result = $this->db->query('UPDATE dbo.eTab_IntranetZarizeni
-            SET TokenHash = ?, DatumRegistrace = ?, DatumPosledniAktivity = ?
+            SET TokenHash = ?, DatRegistrace = ?, DatPosledniAktivity = ?
             WHERE ID = ? AND Povoleno = 1 AND ' . $condition, ...$params);
         if ($result->getRowCount() !== 1) {
             throw new \RuntimeException('Registrace zařízení se mezitím změnila. Obnovte stránku a opakujte akci.');
@@ -55,9 +55,9 @@ class DeviceModel extends BaseModel
 
     public function touch(string $token): void
     {
-        $this->db->query('UPDATE dbo.eTab_IntranetZarizeni SET DatumPosledniAktivity = ?
+        $this->db->query('UPDATE dbo.eTab_IntranetZarizeni SET DatPosledniAktivity = ?
             WHERE TokenHash = ? AND Povoleno = 1
-            AND (DatumPosledniAktivity IS NULL OR DatumPosledniAktivity < ?)',
+            AND (DatPosledniAktivity IS NULL OR DatPosledniAktivity < ?)',
             new \DateTimeImmutable, hash('sha256', $token), new \DateTimeImmutable('-5 minutes'));
     }
 }
