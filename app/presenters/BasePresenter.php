@@ -12,6 +12,13 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
     protected \App\Audit\AuditLog $audit;
 
+    protected \App\Helpers\HeliosErrorMessages $heliosErrors;
+
+    public function injectHeliosErrorMessages(\App\Helpers\HeliosErrorMessages $messages): void
+    {
+        $this->heliosErrors = $messages;
+    }
+
     public function injectAuditLog(\App\Audit\AuditLog $audit): void
     {
         $this->audit = $audit;
@@ -75,6 +82,14 @@ class BasePresenter extends Nette\Application\UI\Presenter {
         try {
             return $operation();
         } catch (\Nette\Database\DriverException $e) {
+            $translated = $this->heliosErrors->translate($e);
+            if ($translated !== null) {
+                \Tracy\Debugger::log($e, \Tracy\Debugger::EXCEPTION);
+                $this->audit->enrich([], ['cisloHlaskyHelios' => $translated->messageNumber]);
+                $this->audit->failure($translated->getMessage());
+                $this->flashMessage($translated->getMessage(), 'warning');
+                return false;
+            }
             $this->audit->failure('Databázová chyba při zpracování operace.', 3);
             \Tracy\Debugger::log($e, \Tracy\Debugger::EXCEPTION);
             $this->flashMessage('Operace selhala. Ověřte stav dokladu před dalším pokusem.', 'danger');

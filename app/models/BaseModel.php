@@ -10,6 +10,12 @@ class BaseModel
     public $db;
 
     protected ?\App\Audit\AuditLog $audit = null;
+    protected ?\App\Helpers\HeliosErrorMessages $heliosErrors = null;
+
+    public function setHeliosErrorMessages(\App\Helpers\HeliosErrorMessages $messages): void
+    {
+        $this->heliosErrors = $messages;
+    }
 
     public function __construct(Nette\Database\Explorer $database)
     {
@@ -51,6 +57,15 @@ class BaseModel
             $this->audit?->accept();
             return $result;
         } catch (\Throwable $e) {
+            // Connection::transaction has already completed rollback before this lookup.
+            if ($e instanceof Nette\Database\DriverException && $this->heliosErrors !== null) {
+                $translated = $this->heliosErrors->translate($e);
+                if ($translated !== null) {
+                    \Tracy\Debugger::log($e, \Tracy\Debugger::EXCEPTION);
+                    $this->audit?->enrich([], ['cisloHlaskyHelios' => $translated->messageNumber]);
+                    $e = $translated;
+                }
+            }
             $this->audit?->failure($e instanceof Nette\Database\DriverException
                 ? 'Databázová chyba při zpracování operace.' : $e->getMessage(),
                 $e instanceof Nette\Database\DriverException || !$e instanceof \RuntimeException ? 3 : 2);

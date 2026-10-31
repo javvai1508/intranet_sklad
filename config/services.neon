@@ -1,4 +1,5 @@
 services:
+	- App\Helpers\HeliosErrorMessages
 	-
 		create: App\Audit\AuditLog
 		arguments:
@@ -9,6 +10,7 @@ services:
 		create: App\Models\DeviceModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 	- App\Helpers\DeviceIdentity
 	- App\Models\UserModel
 	- App\Forms\ReadBarCodeFormFactory
@@ -16,22 +18,27 @@ services:
 		create: App\Models\MaterialModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 	-
 		create: App\Models\InventoryModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 	-
 		create: App\Models\TransferReceiptModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 	-
 		create: App\Models\DeliveryNoteModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 	-
 		create: App\Models\ProductionModel
 		setup:
 			- setAuditLog(@App\Audit\AuditLog)
+			- setHeliosErrorMessages(@App\Helpers\HeliosErrorMessages)
 
 search:
 	-	in: %appDir%

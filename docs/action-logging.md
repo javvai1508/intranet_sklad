@@ -94,3 +94,16 @@ uzavření dokladu, kontrolu příjmu, opravu inventury, odvedení výroby a reg
 zařízení. Zkontrolujte zejména návratovou hodnotu procedury převodu do prodejny,
 Autor podle SQL účtu a IDUzivatel podle pracovníka. Nasazené Helios procedury
 mohou být novější než jejich referenční kopie v repozitáři.
+
+## Interní hlášky Heliosu
+
+SQL výjimky se po rollbacku překládají přes `dbo.TabInterniHlasky` (Cislo, Hlaska).
+Účet aplikace potřebuje SELECT také na tuto tabulku. Rozpozná se nativní číslo
+SQL chyby z PDO errorInfo[1], případně text `Cislo|parametr` při generické chybě
+50000. SQLSTATE není číslo hlášky. Parametry `%s` se doplní z oddělovače `|`;
+pokud spolehlivé doplnění není možné, použije se obecné upozornění.
+Známé hlášení se zobrazí pracovníkovi a do logu zapíše jako Vysledek = 2,
+s číslem v Detail.cisloHlaskyHelios. Původní SQL výjimka zůstává v Tracy.
+Nenalezené hlášky nebo nedostupnost číselníku zachovají technický fallback
+(Vysledek = 3), bez zobrazení SQL diagnostiky pracovníkovi.
+Procedury musí předávat chyby volajícímu (THROW) a respektovat transakci aplikace.
