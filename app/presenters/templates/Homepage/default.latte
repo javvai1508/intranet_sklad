@@ -9,4 +9,7 @@
     <div class="select-app" n:if="$presenter->hasAccess('skladMenu')">
         <a n:href="Material:default"><i class="far fa-pallet-alt fa-2x"></i><br><br><span class="sm">Sklad</span></a>
     </div>
+    <div class="select-app" n:if="$presenter->hasAccess('admin')">
+        <a n:href="Settings:default"><i class="far fa-cog fa-2x"></i><br><br><span class="sm">Nastavení</span></a>
+    </div>
 </div>

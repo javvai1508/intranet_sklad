@@ -49,6 +49,8 @@
 
                                 <a class="dropdown-item" n:if="$presenter->hasAccess('vyroba')" n:href="Production:default"><i class="far fa-inbox-in"></i> Výroba</a>
                                 <a class="dropdown-item" n:if="$presenter->hasAccess('skladMenu')" n:href="Material:default"><i class="far fa-pallet-alt"></i> Sklad</a>
+                                <a class="dropdown-item" n:if="$presenter->hasAccess('admin')" n:href="Settings:default"><i class="far fa-cog"></i> Nastavení</a>
+                                <div class="dropdown-item-text small" n:if="$currentDevice">Zařízení: {$currentDevice->Kod}</div>
                                 <a class="dropdown-item" n:href="Sign:out"><i class="far fa-sign-out"></i> Odhlásit</a>
                             </div>
                         </div>

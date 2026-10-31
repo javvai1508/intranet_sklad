@@ -1,6 +1,8 @@
 services:
 	- App\Router\RouterFactory::createRouter
 	- App\Forms\SignFormFactory
+	- App\Models\DeviceModel
+	- App\Helpers\DeviceIdentity
 	- App\Models\UserModel
 	- App\Forms\ReadBarCodeFormFactory
 	- App\Models\MaterialModel

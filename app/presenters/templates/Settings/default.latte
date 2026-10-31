@@ -1,0 +1,23 @@
+{block content}
+<div class="row content">
+    <div class="col-12 col-lg-8 mx-auto py-3">
+        <h2>Registrace zařízení</h2>
+        {if $currentDevice}
+            <div class="alert alert-success">
+                Tento přístroj: <strong>{$currentDevice->Kod} – {$currentDevice->Nazev}</strong>
+                <span n:if="$currentDevice->Model">({$currentDevice->Model})</span>
+            </div>
+        {else}
+            <div class="alert alert-warning">Tento přístroj není zaregistrovaný nebo jeho registrace není platná.</div>
+        {/if}
+        <p>Registraci provádějte přímo na čtečce, kterou chcete přiřadit. Vyberte její záznam založený v Heliosu.</p>
+        <p>Nahrazení registrace zneplatní původní přiřazení vybraného zařízení. Výběr jiného zařízení změní přiřazení tohoto prohlížeče.</p>
+        {form registerDeviceForm}
+            <div n:foreach="$form->getErrors() as $error" class="alert alert-danger">{$error}</div>
+            <div class="mb-3">{label deviceId /}{input deviceId}</div>
+            <div class="mb-3">{input replace} {label replace /}</div>
+            {input register}
+        {/form}
+        <p class="small text-muted mt-3">Registrace platí v tomto prohlížeči po dobu 180 dnů. Po vymazání jeho dat nebo vypršení platnosti bude potřeba registraci zopakovat.</p>
+    </div>
+</div>
