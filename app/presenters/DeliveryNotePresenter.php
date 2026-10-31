@@ -25,6 +25,8 @@ class DeliveryNotePresenter extends BasePresenter {
         parent::startup();
 
         if (!$this->hasAccess('sklad')) {
+            $this->audit->begin(\App\Audit\Action::ACCESS_DENIED, [], ['stranka' => $this->getName()]);
+            $this->audit->failure('Uživatel nemá oprávnění pro tuto část aplikace.');
             $this->redirect("Homepage:");
         }
     }
@@ -73,6 +75,8 @@ class DeliveryNotePresenter extends BasePresenter {
                 $this->redirect('DeliveryNote:default');
             } else {
 
+                $this->audit->enrich(['IDDoklad' => $deliveryNoteId]);
+                $this->audit->complete();
                 $deliveryNoteIdSess = $this->getSession('deliveryNote');
                 $deliveryNoteIdSess->deliveryNoteId = $deliveryNoteId;
 
@@ -151,6 +155,7 @@ class DeliveryNotePresenter extends BasePresenter {
      * nový výběr dodacího listu
      */
     public function handleChangeDeliveryNote() {
+        $this->audit->complete();
         $this->getSession('deliveryNote')->remove();
         $this->redirect('DeliveryNote:default');
     }

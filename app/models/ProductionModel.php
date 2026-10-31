@@ -49,8 +49,10 @@ class ProductionModel extends BaseModel {
             if (!$state || $state->IDVyrCis != $idVyrCis || $state->Odvedeno + $state->OdvedenoNereal >= $state->Zadane) {
                 throw new \RuntimeException('Paleta neexistuje nebo již byla odvedena.');
             }
+            $this->audit?->enrich(['IDVyrCisPrikaz' => $idVyrCis, 'IDPrikaz' => $state->IDPrikaz, 'SSCC' => $row->VyrCislo]);
             $result = $this->closeProductionInternal($idVyrCis, $cisloZam);
             if (!$result || !$result->IDPrijem) { throw new \RuntimeException($result->Msg ?? 'Výrobu se nepodařilo odvést.'); }
+            $this->audit?->enrich(['IDDoklad' => $result->IDPrijem]);
             return $result;
         });
     }

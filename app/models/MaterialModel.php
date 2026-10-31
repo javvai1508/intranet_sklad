@@ -332,8 +332,13 @@ class MaterialModel extends BaseModel {
     private function moveSerialNumberToShopInternal($barCode) {
         $res = -9;
             // spustit akci na přidání položky do výdejky
-            $dispatchId = $this->db->query("SET NOCOUNT ON "
-            . "EXEC hpx_agrafa_skl_dokl_prevod_do_prod @SSCC = ?", $barCode);
+            $dispatchId = $this->db->query("SET NOCOUNT ON; DECLARE @IDPrij INT; "
+            . "EXEC @IDPrij = hpx_agrafa_skl_dokl_prevod_do_prod @SSCC = ?; "
+            . "SELECT @IDPrij AS IDDoklad", $barCode)->fetch();
+            if (!$dispatchId || !$dispatchId->IDDoklad) {
+                throw new \RuntimeException('Převod do prodejny nevrátil příjmový doklad.');
+            }
+            $this->audit?->enrich(['IDDoklad' => $dispatchId->IDDoklad]);
 
             if ($res) {
                 $res = $dispatchId;
@@ -456,7 +461,9 @@ class MaterialModel extends BaseModel {
             $result = $this->openNewDispatchInternal($dispatchType);
             if (empty($result['IDDoklad'])) { throw new \RuntimeException('Výdejku se nepodařilo založit.'); }
 
+            $this->audit?->enrich(['IDDoklad' => $result['IDDoklad']]);
             $settings = self::getTransferSettings($dispatchType);
+            $this->audit?->enrich([], ['zdrojovySklad' => $settings['source'], 'cilovySklad' => $settings['target']]);
             $document = $this->getDispatch($result['IDDoklad']);
             if (!$document || (int) $document->DruhPohybuZbo !== 4
                 || (string) $document->IDSklad !== $settings['source']

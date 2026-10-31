@@ -32,6 +32,7 @@ final class SignPresenter extends BasePresenter
 
     public function actionOut()
     {
+        $this->audit->complete();
         $this->getUser()->logout(true);
         $session = $this->getSession();
         $session->destroy();

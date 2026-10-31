@@ -9,23 +9,53 @@ class BaseModel
     /** @var Nette\Database\Explorer */
     public $db;
 
+    protected ?\App\Audit\AuditLog $audit = null;
+
     public function __construct(Nette\Database\Explorer $database)
     {
         $this->db = $database;
     }
 
+    public function setAuditLog(\App\Audit\AuditLog $audit): void
+    {
+        $this->audit = $audit;
+    }
+
     public function warehouseOperation(callable $operation)
     {
-        return $this->db->getConnection()->transaction(function () use ($operation) {
-            $lock = $this->db->query("SET NOCOUNT ON; DECLARE @result INT;
-                EXEC @result = sys.sp_getapplock @Resource = N'intranet_sklad:write',
-                    @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000;
-                SELECT @result AS result;")->fetchField();
-            if ($lock === null || (int) $lock < 0) {
-                throw new \RuntimeException('Sklad právě zpracovává jiný požadavek. Opakujte akci.');
-            }
-            return $operation();
-        });
+        return $this->auditedTransaction($operation, true);
+    }
+
+    protected function auditedTransaction(callable $operation, bool $warehouseLock = false)
+    {
+        try {
+            $result = $this->db->getConnection()->transaction(function () use ($operation, $warehouseLock) {
+                if ($warehouseLock) {
+                    $lock = $this->db->query("SET NOCOUNT ON; DECLARE @result INT;
+                        EXEC @result = sys.sp_getapplock @Resource = N'intranet_sklad:write',
+                            @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000;
+                        SELECT @result AS result;")->fetchField();
+                    if ($lock === null || (int) $lock < 0) {
+                        throw new \RuntimeException('Sklad právě zpracovává jiný požadavek. Opakujte akci.');
+                    }
+                }
+                $this->audit?->capturePallets();
+                $result = $operation();
+                if ($result === false) {
+                    throw new \RuntimeException('Operace neprovedla požadovanou změnu.');
+                }
+                $this->audit?->capturePallets();
+                $this->audit?->writeSuccess();
+                return $result;
+            });
+            $this->audit?->accept();
+            return $result;
+        } catch (\Throwable $e) {
+            $this->audit?->failure($e instanceof Nette\Database\DriverException
+                ? 'Databázová chyba při zpracování operace.' : $e->getMessage(),
+                $e instanceof Nette\Database\DriverException || !$e instanceof \RuntimeException ? 3 : 2);
+            throw $e;
+        }
     }
 
     public function assertDocument($documentId, $itemId = null, $serialId = null, bool $open = true): void

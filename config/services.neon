@@ -1,15 +1,34 @@
 services:
+	- App\Audit\AuditLog
 	- App\Router\RouterFactory::createRouter
 	- App\Forms\SignFormFactory
-	- App\Models\DeviceModel
+	-
+		create: App\Models\DeviceModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
 	- App\Helpers\DeviceIdentity
 	- App\Models\UserModel
 	- App\Forms\ReadBarCodeFormFactory
-	- App\Models\MaterialModel
-	- App\Models\InventoryModel
-	- App\Models\TransferReceiptModel
-	- App\Models\DeliveryNoteModel
-	- App\Models\ProductionModel
+	-
+		create: App\Models\MaterialModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
+	-
+		create: App\Models\InventoryModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
+	-
+		create: App\Models\TransferReceiptModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
+	-
+		create: App\Models\DeliveryNoteModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
+	-
+		create: App\Models\ProductionModel
+		setup:
+			- setAuditLog(@App\Audit\AuditLog)
 
 search:
 	-	in: %appDir%

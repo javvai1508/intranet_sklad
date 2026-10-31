@@ -12,7 +12,7 @@ class SignFormFactory
     /** @var User */
     private $user;
 
-    public function __construct(User $user) 
+    public function __construct(User $user, private readonly \App\Audit\AuditLog $audit)
     {
         $this->user = $user;
     }
@@ -47,7 +47,15 @@ class SignFormFactory
 
         try {
             $this->user->login($values->pin, '');
+            try { $this->audit->complete(); }
+            catch (\Throwable $e) {
+                $this->user->logout(true);
+                \Tracy\Debugger::log($e, \Tracy\Debugger::EXCEPTION);
+                $this->audit->failure('Nelze uložit přihlášení do protokolu.', 3);
+                $form->addError('Přihlášení se nepodařilo zaznamenat. Kontaktujte správce.');
+            }
         } catch (Nette\Security\AuthenticationException $e) {
+            $this->audit->failure('Neplatný PIN, neaktivní účet nebo chybějící oprávnění.');
             $form->addError($e->getMessage());
         }
     }

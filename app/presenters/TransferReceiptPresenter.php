@@ -20,6 +20,8 @@ class TransferReceiptPresenter extends BasePresenter
     {
         parent::startup();
         if (!$this->hasAccess('sklad')) {
+            $this->audit->begin(\App\Audit\Action::ACCESS_DENIED, [], ['stranka' => $this->getName()]);
+            $this->audit->failure('Uživatel nemá oprávnění pro tuto část aplikace.');
             $this->redirect('Homepage:');
         }
     }
@@ -37,6 +39,8 @@ class TransferReceiptPresenter extends BasePresenter
             $this->flashMessage('Výdejka není připravená ke kontrole příjmu převodu.', 'danger');
             $this->redirect('default');
         }
+        $this->audit->enrich(['IDDoklad' => $document->ID], ['zdrojovySklad' => $document->SourceWarehouse, 'cilovySklad' => $document->TargetWarehouse]);
+        $this->audit->complete();
         $this->getSession('loukovReceipt')->documentId = $document->ID;
         $this->redirect('showReceipt');
     }

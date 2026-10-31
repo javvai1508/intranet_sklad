@@ -23,6 +23,8 @@ class ProductionPresenter extends BasePresenter
         parent::startup();
 
         if (!$this->hasAccess('vyroba')) {
+            $this->audit->begin(\App\Audit\Action::ACCESS_DENIED, [], ['stranka' => $this->getName()]);
+            $this->audit->failure('Uživatel nemá oprávnění pro tuto část aplikace.');
             $this->redirect("Homepage:");
         }
     }
@@ -48,12 +50,13 @@ class ProductionPresenter extends BasePresenter
              * odvedení procedurou 
              */
             if (empty($this->user->getIdentity()->getData()['cislozam'])) {
+                $this->audit->failure('Uživatel není propojen se zaměstnancem.');
                 $form->addError('Pro odvádění výroby musí být uživatel propojen se zaměstnancem.');
                 return;
             }
             $barCodePref = substr($values->BarCode, 0, 2);
             if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
-                $this->flashMessage('Není číslo palety!');
+                $this->flashMessage('Není číslo palety!', 'warning');
                 $this->redirect('Production:');
 
             }
@@ -63,14 +66,14 @@ class ProductionPresenter extends BasePresenter
 
             if ($sn) {
                 if ($sn->Odvedeno + $sn->OdvedenoNereal >= $sn->Zadane) {
-                    $this->flashMessage('Už bylo jednou odvedeno!');
+                    $this->flashMessage('Už bylo jednou odvedeno!', 'warning');
                 } else {
                     $idPrijem = $this->warehouseAction(fn() => $this->dataModel->closeProduction($sn->IDVyrCis, $this->user->getIdentity()->getData()['cislozam']));
                     if ($idPrijem) { $this->flashMessage('Paleta byla odvedena na sklad.', 'success'); }
                 }
 
             } else {
-                $this->flashMessage('Chybné číslo palety!');
+                $this->flashMessage('Chybné číslo palety!', 'warning');
             }
             $this->redirect('Production:');
 

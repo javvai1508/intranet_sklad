@@ -57,6 +57,8 @@ function invRedirect(callable $action): void {
     throw new RuntimeException('Expected redirect');
 }
 $container = createTestContainer();
+require __DIR__ . '/audit-fixture.php';
+createAuditFixture($container->getByType(Nette\Database\Explorer::class));
 $name = $container->findByType(App\Models\InventoryModel::class)[0];
 $container->removeService($name);
 $model = new InventoryPageModel;

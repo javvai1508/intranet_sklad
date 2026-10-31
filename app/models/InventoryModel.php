@@ -103,6 +103,10 @@ class InventoryModel extends BaseModel
             if ($row->CheckId !== null && !$correction) {
                 throw new \RuntimeException('Paleta již byla kontrolována. Použijte opravu množství.');
             }
+            $this->audit?->enrich(['SSCC' => $row->SerialNumber], [
+                'mnozstviPred' => (string) $row->InventoryQuantity, 'mnozstviPo' => $quantity,
+                'mnozstviMJPred' => (string) $row->UnitQuantity, 'mj' => $row->MJ,
+                'IDVyrCS' => $row->IdVyrCS, 'nuloveMnozstviPotvrzeno' => $quantity === '0.000000']);
             // Reject invalid conversions before division; all decimal arithmetic stays in SQL.
             if (!is_numeric($row->Conversion) || (float) $row->Conversion <= 0) {
                 throw new \RuntimeException('Položka nemá platný převod jednotek. Opravte ji v Heliosu.');
@@ -123,6 +127,7 @@ class InventoryModel extends BaseModel
                 || (string) $updated->CheckId === (string) $row->CheckId) {
                 throw new \RuntimeException('Uložení kontroly se nepodařilo ověřit.');
             }
+            $this->audit?->enrich([], ['mnozstviMJPo' => (string) $updated->UnitQuantity]);
             return true;
         });
     }
@@ -154,6 +159,7 @@ class InventoryModel extends BaseModel
             if ($this->getItems($id, $serial, null, true)) {
                 throw new \RuntimeException('Paleta už je součástí inventury. Načtěte ji znovu.');
             }
+            $this->audit?->enrich([], ['poznamka' => trim($note)]);
             // A retry after an uncertain response must not duplicate the report.
             $this->db->query('INSERT INTO dbo.eTab_IntranetInvDiscrepancy
                 (InventoryId, SerialNumber, Note, ReportedBy)

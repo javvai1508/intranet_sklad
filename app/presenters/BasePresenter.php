@@ -10,6 +10,13 @@ use App\Helpers\RequireLoggedUser;
 class BasePresenter extends Nette\Application\UI\Presenter {
     use RequireLoggedUser; // bez přihlášení
 
+    protected \App\Audit\AuditLog $audit;
+
+    public function injectAuditLog(\App\Audit\AuditLog $audit): void
+    {
+        $this->audit = $audit;
+    }
+
     protected \App\Helpers\DeviceIdentity $deviceIdentity;
 
     public function injectDeviceIdentity(\App\Helpers\DeviceIdentity $deviceIdentity): void
@@ -22,7 +29,19 @@ class BasePresenter extends Nette\Application\UI\Presenter {
         parent::__construct();
     }
 
+    public function run(Nette\Application\Request $request): Nette\Application\Response
+    {
+        try {
+            return parent::run($request);
+        } catch (\Throwable $e) {
+            $this->audit->failure($e instanceof Nette\Database\DriverException
+                ? 'Databázová chyba při zpracování požadavku.' : 'Neočekávaná chyba při zpracování požadavku.', 3);
+            throw $e;
+        }
+    }
+
     public function startup() {
+        \App\Audit\RequestAudit::start($this, $this->audit);
         Parent::startup();
         
         $this->template->dbInfo = $this->getDbInfo();
@@ -56,12 +75,40 @@ class BasePresenter extends Nette\Application\UI\Presenter {
         try {
             return $operation();
         } catch (\Nette\Database\DriverException $e) {
+            $this->audit->failure('Databázová chyba při zpracování operace.', 3);
             \Tracy\Debugger::log($e, \Tracy\Debugger::EXCEPTION);
             $this->flashMessage('Operace selhala. Ověřte stav dokladu před dalším pokusem.', 'danger');
         } catch (\RuntimeException $e) {
+            $this->audit->failure($e->getMessage());
             $this->flashMessage($e->getMessage(), 'danger');
         }
         return false;
+    }
+
+    public function flashMessage(string|\stdClass|\Stringable $message, string $type = 'info'): \stdClass
+    {
+        if (in_array($type, ['danger', 'error', 'warning'], true) && is_string($message)) {
+            $this->audit->failure($message);
+        }
+        return parent::flashMessage($message, $type);
+    }
+
+    public function error(string $message = '', int $httpCode = 404): void
+    {
+        if ($httpCode === 403) {
+            if (!$this->audit->pending()) {
+                $this->audit->begin(\App\Audit\Action::ACCESS_DENIED, [], ['stranka' => $this->getName()]);
+            }
+            $this->audit->failure($message);
+        }
+        parent::error($message, $httpCode);
+    }
+
+    protected function shutdown(Nette\Application\Response $response): void
+    {
+        parent::shutdown($response);
+        // A pending mutation never becomes a success just because its request redirected.
+        $this->audit->failure('Požadavek nebyl dokončen nebo neprošel kontrolou formuláře.');
     }
 
     protected function beforeRender(): void

@@ -62,6 +62,7 @@ class MaterialPresenter extends BasePresenter
             $this->redirect('Material:default');
         }
         if (count($dispatches) === 1) {
+            $this->audit->setAction(\App\Audit\Action::TRANSFER_RESUME);
             $id = reset($dispatches)->ID;
             $document = in_array($type, ['toLoukov', 'fromLoukov'], true) ? $this->dataModel->getDispatch($id) : null;
             $this->flashMessage($document && (int) $document->StavDispExp === 1
@@ -75,6 +76,8 @@ class MaterialPresenter extends BasePresenter
             }
             $id = $result['IDDoklad'];
         }
+        $this->audit->enrich(['IDDoklad' => $id]);
+        $this->audit->complete();
         $session = $this->getSession('dispatch');
         $session->dispatchId = $id;
         $session->dispatchType = $type;

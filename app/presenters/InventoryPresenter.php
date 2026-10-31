@@ -17,7 +17,9 @@ class InventoryPresenter extends BasePresenter
     public function startup()
     {
         parent::startup();
-        if (!$this->hasAccess('inventura')) { $this->redirect('Homepage:'); }
+        if (!$this->hasAccess('inventura')) {
+            $this->audit->begin(\App\Audit\Action::ACCESS_DENIED, [], ['stranka' => $this->getName()]);
+            $this->audit->failure('Uživatel nemá oprávnění pro tuto část aplikace.'); $this->redirect('Homepage:'); }
     }
 
     public function renderDefault(): void
@@ -46,7 +48,12 @@ class InventoryPresenter extends BasePresenter
 
     public function renderShow(int $id, string $code = ''): void
     {
-        $this->inventory($id);
+        $inventory = $this->inventory($id);
+        if (!$this->audit->pending() && $this->getSession('inventorySelection')->id !== $id) {
+            $this->audit->begin(\App\Audit\Action::INVENTORY_SELECT, ['IDInventura' => $id], ['sklad' => $inventory->IdSklad]);
+            $this->audit->complete();
+            $this->getSession('inventorySelection')->id = $id;
+        }
         $items = $this->warehouseAction(fn() => $this->dataModel->getItems($id)) ?: [];
         $this->template->items = $items;
         $this->template->confirmed = count(array_filter($items, fn($r) => (int) $r->Confirmed === 1));
@@ -72,6 +79,11 @@ class InventoryPresenter extends BasePresenter
             $serial = $this->warehouseAction(fn() => InventoryModel::normalizeBarcode($values->barcode));
             if ($serial === false) { $this->redirect('show', ['id' => $id]); }
             $rows = $this->warehouseAction(fn() => $this->dataModel->getItems($id, $serial));
+            if ($rows !== false) {
+                $this->audit->enrich(['SSCC' => $serial], ['pocetShod' => count($rows)]);
+                if (count($rows) === 1) $this->audit->enrich(['IDPolozkaInventury' => $rows[0]->Id]);
+                $this->audit->complete();
+            }
             if ($rows !== false && count($rows) === 1) {
                 $this->redirect('item', ['id' => $id, 'itemId' => $rows[0]->Id]);
             }

@@ -106,6 +106,9 @@ class TransferReceiptModel extends BaseModel
                 throw new \RuntimeException('Paleta není na vybrané výdejce nebo je na ní uvedena vícekrát.');
             }
             $pallet = $matches[0];
+            $this->audit?->enrich(['IDDoklad' => $documentId, 'IDVyrCP' => $pallet->ID,
+                'IDPolozkaDokladu' => $pallet->ItemId, 'SSCC' => $serialNumber],
+                ['mnozstvi' => (string) $pallet->Quantity]);
             if ($pallet->ScannedAt !== null) {
                 throw new \RuntimeException('Paleta již byla načtena. Zkontrolujte její stav v přehledu.');
             }
