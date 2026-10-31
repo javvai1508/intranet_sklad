@@ -10,7 +10,6 @@ use Nette\Security\User;
 
 class AuditLog
 {
-    public const APP = 1;
     private ?int $action = null;
     private array $fields = [];
     private array $detail = [];
@@ -20,7 +19,12 @@ class AuditLog
     private ?int $device = null;
 
     public function __construct(private readonly Explorer $db, private readonly User $user,
-        private readonly IRequest $request) {}
+        private readonly IRequest $request, private readonly int $appId)
+    {
+        if ($appId < 1) {
+            throw new \InvalidArgumentException('ID aplikace musí být kladné celé číslo.');
+        }
+    }
 
     public function begin(int $action, array $fields = [], array $detail = []): void
     {
@@ -130,6 +134,6 @@ class AuditLog
             'NULL', 'NULL', 'NULL', '?', '?', ...array_fill(0, count($fields), '?')];
         $this->db->query('INSERT INTO dbo.eTab_IntranetLog (' . implode(', ', $columns)
             . ') VALUES (' . implode(', ', $values) . ')',
-            self::APP, $this->action, $result, $this->operation, $message, $json, ...array_values($fields));
+            $this->appId, $this->action, $result, $this->operation, $message, $json, ...array_values($fields));
     }
 }

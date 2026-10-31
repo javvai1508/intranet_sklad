@@ -24,7 +24,7 @@ $db->query('INSERT INTO dbo.eTab_IntranetZarizeni (ID, Povoleno, TokenHash) VALU
 $user = $c->getByType(Nette\Security\User::class);
 $user->login(new Nette\Security\SimpleIdentity(42, ['admin'], ['authVersion' => 2, 'fullname' => 'Test']));
 $http = new Nette\Http\Request(new Nette\Http\UrlScript('https://test.example/'), cookies: ['intranet_device' => $token]);
-$audit = new AuditLog($db, $user, $http);
+$audit = new AuditLog($db, $user, $http, 17);
 class AuditTransactionModel extends App\Models\BaseModel {
     public function run(callable $operation) { return $this->auditedTransaction($operation); }
 }
@@ -33,6 +33,7 @@ $model->setAuditLog($audit);
 $audit->begin(Action::DELIVERY_REMOVE, ['IDDoklad' => 10, 'IDVyrCP' => 7]);
 $model->run(function () use ($db) { $db->query('DELETE FROM TabVyrCP WHERE ID = 7'); return true; });
 $row = $db->query('SELECT * FROM dbo.eTab_IntranetLog ORDER BY ID DESC')->fetch();
+auditCheck($row->IDApp === 17, 'Configured application ID ignored');
 auditCheck($row->Vysledek === 1 && $row->IDUzivatel === 42 && $row->IDZarizeni === 3, 'Actor/device missing');
 auditCheck($row->Autor === 'sql-test-login' && $row->DatPorizeni !== null && $row->Zmenil === null, 'Helios columns');
 auditCheck($row->SSCC === '001234' && $row->IDVyrCP === 7, 'Deleted pallet identity lost');

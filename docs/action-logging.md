@@ -1,6 +1,8 @@
 # Společný protokol intranetu
 
-Aplikace Sklad – evidence používá IDApp = 1. Jednotlivé moduly (expedice, převody,
+Aplikace Sklad – evidence používá IDApp = 1, nastavené parametrem
+`audit.appId` v `config/common.neon`. Hodnotu lze přepsat v lokální konfiguraci;
+musí být kladné celé číslo. Logger ji dostává přes DI, neobsahuje pevné ID aplikace. Jednotlivé moduly (expedice, převody,
 inventura, výroba, nastavení) nejsou samostatné aplikace. Další aplikace dostanou
 jiné stabilní IDApp. Číselník akcí je společný pro celý intranet: ID se nemění ani
 znovu nepoužívají. Zdroj číselníku: `app/audit/Action.php`.

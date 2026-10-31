@@ -1,5 +1,8 @@
 services:
-	- App\Audit\AuditLog
+	-
+		create: App\Audit\AuditLog
+		arguments:
+			appId: %audit.appId%
 	- App\Router\RouterFactory::createRouter
 	- App\Forms\SignFormFactory
 	-
