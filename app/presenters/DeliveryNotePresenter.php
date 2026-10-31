@@ -24,7 +24,7 @@ class DeliveryNotePresenter extends BasePresenter {
     public function startup() {
         parent::startup();
 
-        if (!$this->user->isInRole("sklad") && !$this->user->isInRole("expedice")) {
+        if (!$this->hasAccess('sklad')) {
             $this->redirect("Homepage:");
         }
     }

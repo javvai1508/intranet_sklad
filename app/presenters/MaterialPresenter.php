@@ -24,8 +24,9 @@ class MaterialPresenter extends BasePresenter
     {
         parent::startup();
 
-        if (!$this->user->isInRole("sklad")) {
-            $this->redirect("Homepage:");
+        if (!$this->hasAccess('skladMenu') || (!$this->hasAccess('sklad')
+            && ($this->getAction() !== 'default' || $this->getSignal() !== null))) {
+            $this->error('Pro tuto část aplikace nemáte oprávnění.', 403);
         }
     }
 

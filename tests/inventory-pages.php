@@ -62,7 +62,7 @@ $container->removeService($name);
 $model = new InventoryPageModel;
 $container->addService($name, $model);
 $user = $container->getByType(Nette\Security\User::class);
-$user->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['fullname' => 'Test', 'vychozi' => 2]));
+$user->login(new Nette\Security\SimpleIdentity(1, ['inventura'], ['authVersion' => 2, 'fullname' => 'Test', 'vychozi' => 2]));
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
 function invPage(string $action, array $params = []): array {
     global $factory;

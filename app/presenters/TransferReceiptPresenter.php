@@ -19,7 +19,7 @@ class TransferReceiptPresenter extends BasePresenter
     public function startup()
     {
         parent::startup();
-        if (!$this->user->isInRole('sklad')) {
+        if (!$this->hasAccess('sklad')) {
             $this->redirect('Homepage:');
         }
     }

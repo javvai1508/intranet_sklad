@@ -42,7 +42,7 @@ $name = $container->findByType(App\Models\MaterialModel::class)[0];
 $container->removeService($name);
 $model = new TransferPageModel;
 $container->addService($name, $model);
-$container->getByType(Nette\Security\User::class)->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['fullname' => 'Test', 'vychozi' => 2]));
+$container->getByType(Nette\Security\User::class)->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['authVersion' => 2, 'fullname' => 'Test', 'vychozi' => 2]));
 $session = $container->getByType(Nette\Http\Session::class)->getSection('dispatch');
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
 function transferPage(string $action, array $params = []): array {

@@ -10,7 +10,7 @@
                 {else}
                     <div class="input-group mb-2">	
                         {input $input}
-                        {if $input->name == "username"}
+                        {if $input->name == "pin"}
                             <div class="input-group-append">
                                 <span class="input-group-text"><i class="far fa-user"></i></span>
                             </div>
@@ -18,8 +18,8 @@
                     </div>	
                 {/if}
             {/foreach}
-            <ul class=error n:if="$form->ownErrors">
-                <li n:foreach="$form->ownErrors as $error">{$error}</li>
+            <ul class=error n:if="$form->errors">
+                <li n:foreach="$form->errors as $error">{$error}</li>
             </ul>
         {/form}
         <div class="clearfix"></div>
