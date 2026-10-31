@@ -38,7 +38,7 @@ $name = $container->findByType(App\Models\DeliveryNoteModel::class)[0];
 $container->removeService($name);
 $model = new PageDeliveryNoteModel;
 $container->addService($name, $model);
-$container->getByType(Nette\Security\User::class)->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['fullname' => 'Test', 'vychozi' => 2]));
+$container->getByType(Nette\Security\User::class)->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['authVersion' => 2, 'fullname' => 'Test', 'vychozi' => 2]));
 $container->getByType(Nette\Http\Session::class)->getSection('deliveryNote')->deliveryNoteId = 1;
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
 function page(string $action, array $params = []): string {

@@ -22,6 +22,13 @@ class BasePresenter extends Nette\Application\UI\Presenter {
 
     }
 
+    public function hasAccess(string $role): bool
+    {
+        return $this->user->isLoggedIn() && ($this->user->isInRole('admin')
+            || $this->user->isInRole($role)
+            || ($role === 'skladMenu' && ($this->user->isInRole('sklad') || $this->user->isInRole('inventura'))));
+    }
+
     private function getDbInfo(): ?\Nette\Database\Row
     {
         try {

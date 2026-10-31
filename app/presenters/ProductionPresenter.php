@@ -22,7 +22,7 @@ class ProductionPresenter extends BasePresenter
     {
         parent::startup();
 
-        if (!$this->user->isInRole("vyroba")) {
+        if (!$this->hasAccess('vyroba')) {
             $this->redirect("Homepage:");
         }
     }
@@ -47,6 +47,10 @@ class ProductionPresenter extends BasePresenter
              * 
              * odvedení procedurou 
              */
+            if (empty($this->user->getIdentity()->getData()['cislozam'])) {
+                $form->addError('Pro odvádění výroby musí být uživatel propojen se zaměstnancem.');
+                return;
+            }
             $barCodePref = substr($values->BarCode, 0, 2);
             if ($barCodePref != '00' || !preg_match('/^00[0-9]+$/D', $values->BarCode)) {
                 $this->flashMessage('Není číslo palety!');

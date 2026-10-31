@@ -17,7 +17,7 @@ class InventoryPresenter extends BasePresenter
     public function startup()
     {
         parent::startup();
-        if (!$this->user->isInRole('sklad')) { $this->redirect('Homepage:'); }
+        if (!$this->hasAccess('inventura')) { $this->redirect('Homepage:'); }
     }
 
     public function renderDefault(): void
@@ -40,7 +40,7 @@ class InventoryPresenter extends BasePresenter
 
     private function actor(): string
     {
-        // The identity is the numeric TabCisZam ID, so byte truncation is sufficient.
+        // Actor is the intranet user ID (eTab_IntranetUziv.ID).
         return substr((string) $this->user->getId(), 0, 128);
     }
 

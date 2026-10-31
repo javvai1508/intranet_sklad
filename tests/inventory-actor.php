@@ -6,7 +6,7 @@ if (function_exists('mb_substr') || function_exists('mb_strlen')) {
 }
 $container = createTestContainer();
 $user = $container->getByType(Nette\Security\User::class);
-$user->login(new Nette\Security\SimpleIdentity(123, ['sklad']));
+$user->login(new Nette\Security\SimpleIdentity(123, ['inventura']));
 $presenter = $container->getByType(Nette\Application\IPresenterFactory::class)->createPresenter('Inventory');
 // Exercise the production actor independently of unrelated Tracy error rendering.
 $actor = new ReflectionMethod(App\Presenters\InventoryPresenter::class, 'actor');

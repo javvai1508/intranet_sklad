@@ -21,10 +21,15 @@ class SignFormFactory
     {
         $form = new Form;
         $form->addProtection('Platnost formuláře vypršela. Obnovte stránku.');
-        $form->addText('username', 'Jméno')
-                ->setRequired('Zadejte jméno')
+        $form->addPassword('pin', 'PIN')
+                ->setRequired('Zadejte PIN')
+                ->addRule(Form::Pattern, 'PIN musí obsahovat přesně čtyři číslice.', '[0-9]{4}')
+                ->setHtmlAttribute('inputmode', 'numeric')
+                ->setHtmlAttribute('maxlength', 4)
+                ->setHtmlAttribute('autocomplete', 'off')
+                ->setHtmlAttribute('autofocus', true)
                 ->setHtmlAttribute('class', 'form-control')
-                ->setHtmlAttribute('placeholder', 'Jméno');
+                ->setHtmlAttribute('placeholder', 'PIN');
 
         $form->addSubmit('send', 'Přihlásit')
                 ->setHtmlAttribute('class', 'btn btn-lg btn-primary col-xs-12');
@@ -41,7 +46,7 @@ class SignFormFactory
         $this->user->setExpiration('12 hours', TRUE);
 
         try {
-            $this->user->login($values->username, '');
+            $this->user->login($values->pin, '');
         } catch (Nette\Security\AuthenticationException $e) {
             $form->addError($e->getMessage());
         }

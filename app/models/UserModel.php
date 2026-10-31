@@ -2,52 +2,42 @@
 
 namespace App\Models;
 
-use Nette,
-    Nette\Security\SimpleIdentity;
+use Nette\Security\AuthenticationException;
+use Nette\Security\Authenticator;
+use Nette\Security\SimpleIdentity;
 
-class UserModel extends BaseModel implements Nette\Security\Authenticator {
-
-    /**
-     * Performs an authentication.
-     * @return Nette\Security\SimpleIdentity
-     * @throws Nette\Security\AuthenticationException
-     */
-    public function authenticate(string $username, string $password): SimpleIdentity {
-
-        $auth = $this->db->query("SELECT zam.ID AS id, "
-                        . "zam.Cislo AS cislozam, "
-                        . "CONCAT(zam.Jmeno, ' ', zam.Prijmeni) AS fullname,"
-                        . "CASE WHEN ISNULL(zame._intranet_exp, 0) = 1 THEN 'expedice' ELSE '' END AS exp,"
-                        . "CASE WHEN ISNULL(zame._intranet_vyroba, 0) = 1 THEN 'vyroba' ELSE '' END AS vyroba,"
-                        . "CASE WHEN ISNULL(zame._intranet_sklad, 0) = 1 THEN 'sklad' ELSE '' END AS sklad,"
-                        . "zame._intranet_vychozi AS vychozi "
-                        . "FROM TabCisZam zam "
-                        . "LEFT JOIN TabCisZam_EXT zame ON zam.ID = zame.ID "
-                        . "WHERE zam.Cislo = ?", $username)->fetch();
-
-        if (!$auth) {
-            throw new Nette\Security\AuthenticationException('Zaměstnanec nemá potřebná oprávnění.', self::IDENTITY_NOT_FOUND);
+class UserModel extends BaseModel implements Authenticator
+{
+    public function authenticate(string $username, string $password): SimpleIdentity
+    {
+        // Keep PIN as text: leading zeroes are significant.
+        if (!preg_match('/^[0-9]{4}$/D', $username)) {
+            throw new AuthenticationException('Zadejte čtyřmístný PIN.', self::INVALID_CREDENTIAL);
         }
-        $roles = array();
-        if ($auth->exp != "") {
-            array_push($roles, $auth->exp);
+        $rows = $this->db->query("SELECT u.ID, u.ZamestnanecId, u.JmenoPrijmeni,
+            u.Stav, u.PravaAdmin, u.PravaSklad, u.PravaInventura, u.PravaVyroba,
+            zam.Cislo AS cislozam, zam.Jmeno, zam.Prijmeni
+            FROM dbo.eTab_IntranetUziv u
+            LEFT JOIN dbo.TabCisZam zam ON zam.ID = u.ZamestnanecId
+            WHERE u.PIN = ?", $username)->fetchAll();
+        // Ambiguous PINs fail closed, including duplicates on inactive accounts.
+        if (count($rows) !== 1 || $rows[0]->Stav === null || (int) $rows[0]->Stav !== 0) {
+            throw new AuthenticationException('Neplatný PIN nebo neaktivní účet.', self::INVALID_CREDENTIAL);
         }
-        if ($auth->vyroba != "") {
-            array_push($roles, $auth->vyroba);
+        $auth = $rows[0];
+        $roles = [];
+        foreach (['PravaAdmin' => 'admin', 'PravaSklad' => 'sklad',
+            'PravaInventura' => 'inventura', 'PravaVyroba' => 'vyroba'] as $column => $role) {
+            if ((int) $auth->$column === 1) { $roles[] = $role; }
         }
-        if ($auth->sklad != "") {
-            array_push($roles, $auth->sklad);
-        }
-        
         if (!$roles) {
-            throw new Nette\Security\AuthenticationException('Zaměstnanec nemá potřebná oprávnění.', self::NOT_APPROVED);
+            throw new AuthenticationException('Uživatel nemá přidělená oprávnění.', self::NOT_APPROVED);
         }
-        $data = array('fullname' => $auth->fullname, 'vychozi' => $auth->vychozi, 'cislozam' => $auth->cislozam);
-        return new SimpleIdentity(
-            $auth->id, 
-            $roles, 
-            $data
-        );
+        return new SimpleIdentity($auth->ID, $roles, [
+            'fullname' => trim((string) $auth->JmenoPrijmeni) ?: trim($auth->Jmeno . ' ' . $auth->Prijmeni),
+            'zamestnanecId' => $auth->ZamestnanecId,
+            'cislozam' => $auth->cislozam,
+            'authVersion' => 2,
+        ]);
     }
-
 }

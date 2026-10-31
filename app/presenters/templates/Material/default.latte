@@ -1,32 +1,32 @@
 {block content}
 <div class="row content">
-        <div class="select-app"><a n:href="Inventory:default"><i class="far fa-clipboard-list fa-2x"></i><br /><br /><span class="sm">Inventura</span></a></div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('inventura')"><a n:href="Inventory:default"><i class="far fa-clipboard-list fa-2x"></i><br /><br /><span class="sm">Inventura</span></a></div>
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a class="" n:href="newTransferToSchenker!"> 
                 <i class="far fa-arrow-to-right fa-2x"></i><br /><br /><span class="sm">Převod do Schenkeru</span>
             </a>
         </div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a class="" n:href="newTransferToLoukov!">
                 <i class="far fa-arrow-to-right fa-2x"></i><br /><br /><span class="sm">Převod do Loukova</span>
             </a>
         </div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a n:href="newTransferFromLoukov!">
                 <i class="far fa-arrow-to-left fa-2x"></i><br /><br /><span class="sm">Převod z Loukova</span>
             </a>
         </div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a n:href="TransferReceipt:default">
                 <i class="far fa-warehouse fa-2x"></i><br /><br /><span class="sm">Kontrola příjmu převodů</span>
             </a>
         </div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a class="" n:href="deliveryNote:default"> 
                 <i class="far fa-truck fa-2x"></i><br /><br /><span class="sm">Dodací list</span>
             </a>
         </div>
-        <div class="select-app">
+        <div class="select-app" n:if="$presenter->hasAccess('sklad')">
             <a class="" n:href="newTransferToShop"> 
                 <i class="far fa-store-alt fa-2x"></i><br /><br /><span class="sm">Převod do prodejny</span>
             </a>

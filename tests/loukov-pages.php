@@ -58,7 +58,7 @@ $container->removeService($name);
 $model = new ReceiptPageModel;
 $container->addService($name, $model);
 $user = $container->getByType(Nette\Security\User::class);
-$user->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['fullname' => 'Test', 'vychozi' => 2]));
+$user->login(new Nette\Security\SimpleIdentity(1, ['sklad'], ['authVersion' => 2, 'fullname' => 'Test', 'vychozi' => 2]));
 $session = $container->getByType(Nette\Http\Session::class)->getSection('loukovReceipt');
 $factory = $container->getByType(Nette\Application\IPresenterFactory::class);
 function receiptPage(string $action, array $params = []): array {

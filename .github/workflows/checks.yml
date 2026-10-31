@@ -19,6 +19,7 @@ jobs:
       - run: composer dump-autoload --optimize --strict-psr
       - run: php tests/warehouse.php
       - run: php tests/framework.php
+      - run: php tests/pin-permissions.php
       - run: php tests/pages.php
       - run: php tests/material.php
       - run: php tests/loukov-receipt.php
