@@ -10,6 +10,13 @@ use App\Helpers\RequireLoggedUser;
 class BasePresenter extends Nette\Application\UI\Presenter {
     use RequireLoggedUser; // bez přihlášení
 
+    protected \App\Helpers\DeviceIdentity $deviceIdentity;
+
+    public function injectDeviceIdentity(\App\Helpers\DeviceIdentity $deviceIdentity): void
+    {
+        $this->deviceIdentity = $deviceIdentity;
+    }
+
     public function __construct(protected readonly Nette\Database\Explorer $database)
     {
         parent::__construct();
@@ -60,6 +67,7 @@ class BasePresenter extends Nette\Application\UI\Presenter {
     protected function beforeRender(): void
     {
         parent::beforeRender();
+        $this->template->currentDevice = $this->user->isLoggedIn() ? $this->deviceIdentity->getDevice() : null;
         $section = $this->getSession('requestProtection');
         if (!isset($section->token)) { $section->token = bin2hex(random_bytes(32)); }
         $this->template->requestToken = $section->token;
